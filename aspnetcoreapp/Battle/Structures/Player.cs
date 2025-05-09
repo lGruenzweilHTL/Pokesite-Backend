@@ -1,5 +1,3 @@
-namespace aspnetcoreapp.Battle;
-
 public class Player
 {
     public Player(string name, bool isBot, Pokemon[] team) {

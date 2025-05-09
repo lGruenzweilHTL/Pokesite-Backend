@@ -1,7 +1,3 @@
-using aspnetcoreapp.Battle.Enums;
-
-namespace aspnetcoreapp.Battle;
-
 public class GameLoop
 {
     public GameLoop(Player player1, Player player2) {

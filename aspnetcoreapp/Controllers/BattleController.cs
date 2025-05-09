@@ -1,8 +1,4 @@
-using aspnetcoreapp.Battle;
-using aspnetcoreapp.Battle.Utils;
 using Microsoft.AspNetCore.Mvc;
-
-namespace aspnetcoreapp.Controllers;
 
 [ApiController]
 [Route("battle")]

@@ -1,7 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Add DbContext
+builder.Services.AddDbContext<PokesiteDbContext>(options => {
+    options.UseMySQL(builder.Configuration.GetConnectionString("PokesiteDb"));
+});
+
+// Add custom services
+builder.Services.AddScoped<IPokemonService, PokemonService>();
 
 var app = builder.Build();
 

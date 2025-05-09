@@ -1,5 +1,3 @@
-namespace aspnetcoreapp.Battle.Utils;
-
 public static class TypeUtils
 {
     public static double MoveEffectiveness(Move move, Pokemon defender)

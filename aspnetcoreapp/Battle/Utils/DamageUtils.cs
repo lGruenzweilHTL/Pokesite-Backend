@@ -1,5 +1,3 @@
-namespace aspnetcoreapp.Battle.Utils;
-
 public static class DamageUtils
 {
     public static int CalculateDamage(Pokemon attacker, Pokemon defender, Move move)

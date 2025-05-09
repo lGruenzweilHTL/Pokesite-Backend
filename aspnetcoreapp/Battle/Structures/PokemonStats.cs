@@ -1,5 +1,3 @@
-namespace aspnetcoreapp.Battle;
-
 public struct PokemonStats
 {
     public int Attack { get; set; }

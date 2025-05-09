@@ -1,5 +1,3 @@
-using aspnetcoreapp.Battle.Enums;
-
 public class GameAction
 {
     public ActionType Type { get; set; }

@@ -1,7 +1,5 @@
 using System.Text.Json.Nodes;
 
-namespace aspnetcoreapp.Battle.Utils;
-
 public static class JsonUtils
 {
     public static bool TryParseBattleRequest(object request, out Player player1, out Player player2)

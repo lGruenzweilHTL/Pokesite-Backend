@@ -4,12 +4,20 @@ namespace aspnetcoreapp.Battle;
 
 public class GameLoop
 {
+    public GameLoop(Player player1, Player player2) {
+        _gameState = GameState.Initialized;
+        InitPlayers(player1, player2);
+    }
+    
     private GameState _gameState = GameState.NotStarted;
 
-    public void Init(Player player1, Player player2)
+    private void InitPlayers(Player player1, Player player2)
     {
-        // Initialize the game loop
-        _gameState = GameState.Initialized;
+        // TODO
+    }
+
+    public void Start() {
+        
     }
     
     public void ProcessPlayerAction(Player player, Player opponent, GameAction action)

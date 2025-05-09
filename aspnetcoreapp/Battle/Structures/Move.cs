@@ -23,4 +23,8 @@ public class Move
         Accuracy = data.accuracy;
         Effect = data.effect ?? new Effect(data.effect);
     }
+
+    public static Move FromName(string name) {
+        throw new NotImplementedException();
+    }
 }

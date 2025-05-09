@@ -16,8 +16,8 @@ public class BattleController : ControllerBase
             return BadRequest("Could not parse battle request");
         }
 
-        GameLoop game = new();
-        game.Init(player1, player2);
+        GameLoop game = new(player1, player2);
+        game.Start();
         return Ok("Battle started!");
     }
 }

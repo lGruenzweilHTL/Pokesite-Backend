@@ -41,7 +41,7 @@ public class Pokemon
         return 2 * pokemon.Level + 10 + pokemon.Stats.Hp / 100;
     }
 
-    public static List<Move> MovesFromNames(List<string> moveNames) {
+    public static Pokemon FromName(string name, string[] moves, int level = 1) {
         throw new NotImplementedException();
     }
 }

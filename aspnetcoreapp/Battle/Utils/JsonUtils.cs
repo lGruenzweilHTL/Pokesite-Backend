@@ -121,12 +121,7 @@ public static class JsonUtils
             }
 
             // Create the Pokemon object
-            pokemon = new Pokemon
-            {
-                Name = name,
-                Level = level.Value,
-                Moves = Pokemon.MovesFromNames(moves)
-            };
+            pokemon = Pokemon.FromName(name, moves.ToArray(), (int)level);
 
             return true;
         }

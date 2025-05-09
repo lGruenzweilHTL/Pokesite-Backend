@@ -1,6 +1,8 @@
 # API Endpoints
 
-## Start Battle
+## Battle
+
+### Start Battle
 
 **Type**: `POST`
 **Endpoint**: `/battle/start`
@@ -47,7 +49,7 @@
 }
 ```
 
-## Action
+### Action
 
 **Type**: `POST`
 **Endpoint**: `/battle/action`
@@ -77,6 +79,7 @@
     "pokemon": "string",
     "hp": "int",
     "effects": ["string"]
-  }
+  },
+  "winner": "none | draw | 1 | 2"
 }
 ```

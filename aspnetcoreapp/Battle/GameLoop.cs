@@ -6,7 +6,7 @@ public class GameLoop
 {
     private GameState _gameState = GameState.NotStarted;
 
-    public void Init()
+    public void Init(Player player1, Player player2)
     {
         // Initialize the game loop
         _gameState = GameState.Initialized;

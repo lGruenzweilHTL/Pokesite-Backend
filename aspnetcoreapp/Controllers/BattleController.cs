@@ -1,3 +1,4 @@
+using aspnetcoreapp.Battle;
 using aspnetcoreapp.Battle.Utils;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +15,9 @@ public class BattleController : ControllerBase
         {
             return BadRequest("Could not parse battle request");
         }
-        
-        return new StatusCodeResult(418); // I'm a teapot
+
+        GameLoop game = new();
+        game.Init(player1, player2);
+        return Ok("Battle started!");
     }
 }

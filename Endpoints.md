@@ -63,3 +63,20 @@
   "player_id": "int"
 }
 ```
+
+**Response**:
+
+```json
+{
+  "player1": {
+    "pokemon": "string",
+    "hp": "int",
+    "effects": ["string"]
+  },
+  "player2": {
+    "pokemon": "string",
+    "hp": "int",
+    "effects": ["string"]
+  }
+}
+```

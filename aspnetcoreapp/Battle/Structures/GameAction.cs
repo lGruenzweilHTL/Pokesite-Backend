@@ -5,9 +5,9 @@ public class GameAction
     public ActionType Type { get; set; }
     public Move Move { get; set; }
     public Pokemon Pokemon { get; set; }
-    public string Target { get; set; }
+    public object Target { get; set; }
 
-    public GameAction(ActionType type, Move move, Pokemon pokemon, string target)
+    public GameAction(ActionType type, Move move, Pokemon pokemon, object target)
     {
         Type = type;
         Move = move;

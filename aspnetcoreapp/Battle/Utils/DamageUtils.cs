@@ -5,8 +5,8 @@ public static class DamageUtils
         int level = attacker.Level;
         int critical = IsCriticalHit(attacker) ? 2 : 1;
         int power = move.Power;
-        int a = move.Special ? attacker.Stats.SpecialAttack : attacker.Stats.Attack;
-        int d = move.Special ? defender.Stats.SpecialDefense : defender.Stats.Defense;
+        int a = move.Special ? attacker.BaseStats.SpecialAttack : attacker.BaseStats.Attack;
+        int d = move.Special ? defender.BaseStats.SpecialDefense : defender.BaseStats.Defense;
         double stab = (move.Type == attacker.Types[0] || (attacker.Types.Count > 1 && move.Type == attacker.Types[1]))
             ? 1.5
             : 1.0;
@@ -33,7 +33,7 @@ public static class DamageUtils
     */
     private static bool IsCriticalHit(Pokemon attacker)
     {
-        var threshold = Math.Min(attacker.Stats.Speed / 2, 255);
+        var threshold = Math.Min(attacker.BaseStats.Speed / 2, 255);
         var random = new Random().Next(0, 256);
         return random < threshold;
     }

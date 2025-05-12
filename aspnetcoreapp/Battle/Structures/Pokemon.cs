@@ -4,7 +4,7 @@ public class Pokemon
     public string Name { get; set; }
     public string Description { get; set; }
     public int Level { get; set; }
-    public PokemonStats Stats { get; set; }
+    public PokemonStats BaseStats { get; set; }
     public List<string> Types { get; set; }
     public int Hp { get; set; }
     public int MaxHp { get; set; }
@@ -24,11 +24,13 @@ public class Pokemon
         { "evasion", 0 }
     };
 
+    // TODO: use this method whenever stats are needed
     public int GetModifiedStat(string statName)
     {
         int stage = Math.Clamp(StatModifiers[statName], -6, 6);
 
-        return (int) Math.Pow((2 + Math.Abs(stage)) / 2d, stage > 0 ? 1 : -1);
+        double multiplier = Math.Pow((2 + Math.Abs(stage)) / 2d, stage > 0 ? 1 : -1);
+        return BaseStats.GetStat(statName) * (int)multiplier;
     }
 
     public int GetAccuracyModifier() => GetModifiedStat("accuracy");
@@ -36,7 +38,7 @@ public class Pokemon
 
     public static int CalculateStartingHp(Pokemon pokemon)
     {
-        return 2 * pokemon.Level + 10 + pokemon.Stats.Hp / 100;
+        return 2 * pokemon.Level + 10 + pokemon.BaseStats.Hp / 100;
     }
 
     public static Pokemon FromName(string name, string[] moves, int level = 1) {

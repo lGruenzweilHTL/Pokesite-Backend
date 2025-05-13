@@ -1,4 +1,4 @@
-public struct PokemonStats
+public class PokemonStats
 {
     public int Attack { get; set; }
     public int Defense { get; set; }

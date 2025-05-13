@@ -1,4 +1,4 @@
 public interface IPokemonService {
-    Task<IEnumerable<DbPokemon>> GetAllPokemonAsync();
-    Task<DbPokemon> GetPokemonByNameAsync(string name);
+    Task<IEnumerable<PokemonEntity>> GetAllPokemonAsync();
+    Task<PokemonEntity?> GetPokemonByNameAsync(string name);
 }

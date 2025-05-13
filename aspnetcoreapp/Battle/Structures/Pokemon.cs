@@ -6,12 +6,12 @@ public class Pokemon
     public int Level { get; set; }
     public PokemonStats BaseStats { get; set; }
     public List<string> Types { get; set; }
-    public int Hp { get; set; }
+    public int CurrentHp { get; set; }
     public int MaxHp { get; set; }
     public List<Move> Moves { get; set; } = new List<Move>();
     public List<Effect> StatusEffects { get; set; } = new List<Effect>();
     public List<Effect> ConditionalEffects { get; set; } = new List<Effect>();
-    public bool Fainted => Hp <= 0;
+    public bool Fainted => CurrentHp <= 0;
 
     private Dictionary<string, int> StatModifiers { get; set; } = new Dictionary<string, int>
     {
@@ -39,9 +39,5 @@ public class Pokemon
     public static int CalculateStartingHp(Pokemon pokemon)
     {
         return 2 * pokemon.Level + 10 + pokemon.BaseStats.Hp / 100;
-    }
-
-    public static Pokemon FromName(string name, string[] moves, int level = 1) {
-        throw new NotImplementedException();
     }
 }

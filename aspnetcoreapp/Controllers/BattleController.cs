@@ -2,18 +2,16 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("battle")]
-public class BattleController : ControllerBase
+public class BattleController(IPokemonService pokemonService) : ControllerBase
 {
     [HttpPost("start")]
     public IActionResult StartBattle([FromBody] object battleRequest)
     {
-        if (!JsonUtils.TryParseBattleRequest(battleRequest, out var player1, out var player2))
-        {
-            return BadRequest("Could not parse battle request");
-        }
+        return NotFound("Not implemented yet.");
+    }
 
-        GameLoop game = new(player1, player2);
-        game.Start();
-        return Ok("Battle started!");
+    [HttpPost("action")]
+    public IActionResult BattleAction([FromBody] object action) {
+        return NotFound("Not implemented yet.");
     }
 }

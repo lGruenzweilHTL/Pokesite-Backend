@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS pokesite; -- Fresh reset to rebuild without conflicts
 CREATE DATABASE pokesite;
 USE pokesite;
 

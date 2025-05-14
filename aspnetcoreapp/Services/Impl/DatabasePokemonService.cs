@@ -20,7 +20,7 @@ public class DatabasePokemonService(PokesiteDbContext ctx) : IPokemonService {
     }
     public async Task<Pokemon?> GetFullPokemonByNameAsync(string name) {
         return await ctx.BuildFullPokemon()
-            .FirstOrDefaultAsync(p => p.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+            .FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
     }
     public async Task<Pokemon?> GetFullPokemonByIdAsync(int id) {
         return await ctx.BuildFullPokemon()

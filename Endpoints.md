@@ -51,8 +51,8 @@
 
 ### Action
 
-**Type**: `POST`
-**Endpoint**: `/battle/action`
+**Type**: `Websocket connection`
+**Endpoint**: `websocket`
 **Description**: Takes an action (attack, item, switch) in the battle.
 **Request Body**:
 
@@ -70,6 +70,7 @@
 
 ```json
 {
+  "messages": ["string"],
   "player1": {
     "pokemon": "string",
     "hp": "int",

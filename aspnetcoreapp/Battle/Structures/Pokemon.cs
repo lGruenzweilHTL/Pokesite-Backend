@@ -13,28 +13,24 @@ public class Pokemon
     public List<Effect> ConditionalEffects { get; set; } = new List<Effect>();
     public bool Fainted => CurrentHp <= 0;
 
-    private Dictionary<string, int> StatModifiers { get; set; } = new Dictionary<string, int>
+    private readonly Dictionary<PokemonStat, int> _statModifiers = new()
     {
-        { "attack", 0 },
-        { "defense", 0 },
-        { "spAttack", 0 },
-        { "spDefense", 0 },
-        { "speed", 0 },
-        { "accuracy", 0 },
-        { "evasion", 0 }
+        { PokemonStat.Attack, 0 },
+        { PokemonStat.Defense, 0 },
+        { PokemonStat.SpecialAttack, 0 },
+        { PokemonStat.SpecialDefense, 0 },
+        { PokemonStat.Speed, 0 },
+        { PokemonStat.Accuracy, 0 },
+        { PokemonStat.Evasion, 0 }
     };
-
-    // TODO: use this method whenever stats are needed
-    public int GetModifiedStat(string statName)
+    
+    public int GetModifiedStat(PokemonStat stat)
     {
-        int stage = Math.Clamp(StatModifiers[statName], -6, 6);
+        int stage = Math.Clamp(_statModifiers[stat], -6, 6);
 
         double multiplier = Math.Pow((2 + Math.Abs(stage)) / 2d, stage > 0 ? 1 : -1);
-        return BaseStats.GetStat(statName) * (int)multiplier;
+        return BaseStats.GetStat(stat) * (int)multiplier;
     }
-
-    public int GetAccuracyModifier() => GetModifiedStat("accuracy");
-    public int GetEvasionModifier() => GetModifiedStat("evasion");
 
     public static int CalculateStartingHp(Pokemon pokemon)
     {

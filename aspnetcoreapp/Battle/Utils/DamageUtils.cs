@@ -5,15 +5,15 @@ public static class DamageUtils
         int level = attacker.Level;
         int critical = IsCriticalHit(attacker) ? 2 : 1;
         int power = move.Power;
-        int a = move.Special ? attacker.BaseStats.SpecialAttack : attacker.BaseStats.Attack;
-        int d = move.Special ? defender.BaseStats.SpecialDefense : defender.BaseStats.Defense;
-        double stab = (move.Type == attacker.Types[0] || (attacker.Types.Count > 1 && move.Type == attacker.Types[1]))
+        int a = move.Special ? attacker.GetModifiedStat(PokemonStat.SpecialAttack) : attacker.GetModifiedStat(PokemonStat.Attack);
+        int d = move.Special ? defender.GetModifiedStat(PokemonStat.SpecialDefense) : defender.GetModifiedStat(PokemonStat.Defense);
+        double stab = move.Type == attacker.Types[0] || (attacker.Types.Count > 1 && move.Type == attacker.Types[1])
             ? 1.5
             : 1.0;
         double type = TypeUtils.MoveEffectiveness(move, defender);
 
         // The formula for damage calculation is as follows:
-        var calc1 = (2 * level * critical / 5) + 2;
+        var calc1 = 2 * level * critical / 5 + 2;
         var calc2 = calc1 * power * a / d;
         var calc3 = calc2 / 50 + 2;
         var random = Math.Floor(new Random().NextDouble() * (255 - 217 + 1) + 217) / 255;

@@ -36,6 +36,6 @@ public class GameAction
             return Move.Priority;
         }
 
-        return Pokemon.GetModifiedStat("speed") > otherAction.Pokemon.GetModifiedStat("speed");
+        return Pokemon.GetModifiedStat(PokemonStat.Speed) > otherAction.Pokemon.GetModifiedStat(PokemonStat.Speed);
     }
 }

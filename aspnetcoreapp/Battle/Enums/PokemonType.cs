@@ -1,0 +1,22 @@
+[Flags]
+public enum PokemonType {
+    None = 0x0,
+    Normal = 0x1,
+    Fire = 0x2,
+    Water = 0x4,
+    Electric = 0x8,
+    Grass = 0x10,
+    Ice = 0x20,
+    Fighting = 0x40,
+    Poison = 0x80,
+    Ground = 0x100,
+    Flying = 0x200,
+    Psychic = 0x400,
+    Bug = 0x800,
+    Rock = 0x1000,
+    Ghost = 0x2000,
+    Dragon = 0x4000,
+    Dark = 0x8000,
+    Steel = 0x10000,
+    Fairy = 0x20000,
+}

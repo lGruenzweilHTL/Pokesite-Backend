@@ -6,14 +6,13 @@ public class PokemonStats
     public int SpecialAttack { get; set; }
     public int SpecialDefense { get; set; }
     public int Hp { get; set; }
-
-    // TODO: make an enum for this
-    public int GetStat(string name) => name.ToLower() switch {
-        "attack" => Attack,
-        "defense" => Defense,
-        "speed" => Speed,
-        "specialAttack" or "spAttack" or "spAtk" => SpecialAttack,
-        "specialDefense" or "spDefense" or "spDef" => SpecialDefense,
-        "hp" or "health" => Hp
+    
+    public int GetStat(PokemonStat stat) => stat switch {
+        PokemonStat.Attack => Attack,
+        PokemonStat.Defense => Defense,
+        PokemonStat.Speed => Speed,
+        PokemonStat.SpecialAttack => SpecialAttack,
+        PokemonStat.SpecialDefense => SpecialDefense,
+        PokemonStat.Hp => Hp
     };
 }

@@ -44,8 +44,15 @@
 
 ```json
 {
-  "battle_id": "string",
-  "websocket_url": "string"
+  "websocket_url": "string",
+  "player1": {
+    "pokemon": "string",
+    "hp": "int"
+  },
+  "player2": {
+    "pokemon": "string",
+    "hp": "int"
+  }
 }
 ```
 

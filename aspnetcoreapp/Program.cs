@@ -2,6 +2,14 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(setup => {
+    setup.AddDefaultPolicy(policy => {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -14,6 +22,7 @@ builder.Services.AddDbContext<PokesiteDbContext>(options => {
 builder.Services.AddScoped<IPokemonService, DatabasePokemonService>();
 
 var app = builder.Build();
+app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

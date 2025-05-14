@@ -29,9 +29,24 @@ public class BattleController(IPokemonService pokemonService) : ControllerBase
             !player2Json["human"]!.GetValue<bool>(),
             player2Team);
 
+        // Create and start the GameLoop
         GameLoop game = new(player1, player2);
-        game.Start();
-        return Ok("Battle created");
+        int websocketPort = game.StartWithWebSocket(); // Start the WebSocket server and get the port
+
+        // Return the WebSocket URL to the client
+        JsonNode response = new JsonObject
+        {
+            ["websocket_url"] = $"ws://127.0.0.1:{websocketPort}",
+            ["player1"] = new JsonObject {
+                ["pokemon"] = player1.CurrentPokemon.Name,
+                ["hp"] = player1.CurrentPokemon.CurrentHp
+            },
+            ["player2"] = new JsonObject {
+                ["pokemon"] = player2.CurrentPokemon.Name,
+                ["hp"] = player2.CurrentPokemon.CurrentHp
+            }
+        };
+        return Ok(response);
     }
 
     [HttpPost("action")]

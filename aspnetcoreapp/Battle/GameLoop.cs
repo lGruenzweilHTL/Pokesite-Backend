@@ -1,21 +1,28 @@
+using System.Text.Json.Nodes;
+
 public class GameLoop
 {
-    public GameLoop(Player player1, Player player2) {
-        _gameState = GameState.NotStarted;
+    private readonly Player _player1;
+    private readonly Player _player2;
+    private GameState _gameState;
+    private readonly WebSocketHandler _webSocketHandler;
 
+    public GameLoop(Player player1, Player player2)
+    {
         _player1 = player1;
         _player2 = player2;
+        _gameState = GameState.NotStarted;
+        _webSocketHandler = new WebSocketHandler();
+        _webSocketHandler.OnMessageReceived += ProcessClientMessage;
     }
 
-    private Player _player1, _player2;
-    
-    private GameState _gameState;
-
-    public void Start() {
+    public int StartWithWebSocket()
+    {
         _gameState = GameState.InProgress;
+        return _webSocketHandler.StartServer();
     }
 
-    public void ReceiveAction(string type, string move, string item, string switchTo, int playerId) {
+    private void ReceiveAction(string type, string move, string item, string switchTo, int playerId) {
         
     }
     
@@ -36,5 +43,24 @@ public class GameLoop
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private void ProcessClientMessage(string message)
+    {
+        // Handle the message (e.g., player actions)
+        Console.WriteLine($"Processing message: {message}");
+        
+        JsonNode node = JsonNode.Parse(message);
+        ReceiveAction(
+            node["type"].GetValue<string>(),
+            node["move"].GetValue<string>(), 
+            node["item"].GetValue<string>(),
+            node["switch_to"].GetValue<string>(),
+            node["player_id"].GetValue<int>());
+    }
+
+    public void SendMessage(string message)
+    {
+        _webSocketHandler.SendMessage(message);
     }
 }

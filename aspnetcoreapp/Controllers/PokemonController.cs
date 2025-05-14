@@ -8,10 +8,20 @@ public class PokemonController(IPokemonService pokemonService) : ControllerBase 
         var pokemon = await pokemonService.GetAllPokemonAsync();
         return Ok(pokemon);
     }
+    [HttpGet("full")]
+    public async Task<IActionResult> GetFullPokemon() {
+        var pokemon = await pokemonService.GetAllFullPokemonAsync();
+        return Ok(pokemon);
+    }
 
     [HttpGet("{name}")]
     public async Task<IActionResult> GetPokemonByName(string name) {
         var pokemon = await pokemonService.GetPokemonByNameAsync(name);
+        if (pokemon == null) {
+            return NotFound($"Pokemon with name '{name}' not found.");
+        }
         return Ok(pokemon);
     }
+
+    
 }

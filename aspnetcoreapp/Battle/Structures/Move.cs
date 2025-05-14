@@ -8,5 +8,5 @@ public class Move
     public bool Status { get; set; }
     public int Power { get; set; }
     public int Accuracy { get; set; }
-    public Effect? Effect { get; set; }
+    public Effect[] Effects { get; set; }
 }

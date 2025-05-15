@@ -12,6 +12,7 @@ public class PokesiteDbContext : DbContext
     public DbSet<MoveEffectsEntity> MoveEffects { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        // Required for systems with case-sensitive SQL like Linux
         modelBuilder.Entity<PokemonEntity>().ToTable("pokemon");
         modelBuilder.Entity<StatsEntity>().ToTable("stats");
         modelBuilder.Entity<TypesEntity>().ToTable("types");

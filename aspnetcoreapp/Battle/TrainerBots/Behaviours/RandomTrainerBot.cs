@@ -6,8 +6,8 @@ public class RandomTrainerBot : ITrainerBotBehaviour {
             throw new InvalidOperationException("The active Pokémon has no moves to choose from.");
         }
 
-        Move move = RandomElement(bot.CurrentPokemon.Moves);
-        return new GameAction(ActionType.Attack, move, currentPokemon, opponent.CurrentPokemon);
+        Move move = RandomElement(currentPokemon.Moves);
+        return new AttackAction(bot, opponent, move);
     }
 
     private static T RandomElement<T>(List<T> collection) => collection[Random.Shared.Next(collection.Count)];

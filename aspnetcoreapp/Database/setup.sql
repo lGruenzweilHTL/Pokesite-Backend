@@ -49,7 +49,7 @@ CREATE TABLE moves
     power INT,
     accuracy INT,
     special BOOLEAN,
-    priority BOOLEAN,
+    priority TINYINT,
     status BOOLEAN,
     PRIMARY KEY (id)
 );
@@ -122,11 +122,11 @@ VALUES
 -- Insert data into moves table
 INSERT INTO moves (name, description, type, power, accuracy, special, priority, status)
 VALUES
-    ('Flamethrower', 'A powerful fire attack.', 'Fire', 90, 100, TRUE, FALSE, FALSE),
-    ('Thunder Wave', 'Paralyzes the opponent.', 'Electric', 0, 90, FALSE, FALSE, TRUE),
-    ('Swords Dance', 'Sharply raises attack.', 'Normal', 0, 0, FALSE, FALSE, FALSE),
-    ('Tail Whip', 'Lowers the opponent defense.', 'Normal', 0, 100, FALSE, FALSE, FALSE),
-    ('Fire Spin', 'Traps the opponent in a vortex of fire.', 'Fire', 35, 85, TRUE, FALSE, FALSE);
+    ('Flamethrower', 'A powerful fire attack.', 'Fire', 90, 100, TRUE, 0, FALSE),
+    ('Thunder Wave', 'Paralyzes the opponent.', 'Electric', 0, 90, FALSE, 0, TRUE),
+    ('Swords Dance', 'Sharply raises attack.', 'Normal', 0, 0, FALSE, 0, FALSE),
+    ('Tail Whip', 'Lowers the opponent defense.', 'Normal', 0, 100, FALSE, 0, FALSE),
+    ('Fire Spin', 'Traps the opponent in a vortex of fire.', 'Fire', 35, 85, TRUE, 0, FALSE);
 
 -- Insert data into move_effects table
 -- Retrieve the auto-generated IDs for moves and effects

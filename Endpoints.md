@@ -65,10 +65,8 @@
 
 ```json
 {
-  "action": "string (attack, item, switch)",
-  "move": "string (only if attack action is taken)",
-  "item": "string (only if item action is taken)",
-  "switch_to": "string (only if switch action is taken)",
+  "type": "attack | item | switch",
+  "object": "string (move | item | switch target)"
   "player_id": "int"
 }
 ```

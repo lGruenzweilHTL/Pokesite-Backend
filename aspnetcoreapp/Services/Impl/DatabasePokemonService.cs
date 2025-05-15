@@ -31,10 +31,9 @@ public class DatabasePokemonService(PokesiteDbContext ctx) : IPokemonService {
     {
         var pokemon = await GetFullPokemonByNameAsync(name);
         if (pokemon == null) return null;
-
-        // TODO: uncomment and fix
-        //var availableMoves = ctx.BuildFullMoves();
-        //pokemon.Moves = availableMoves.Where(p => moves.Contains(p.Name)).ToList();
+        
+        var availableMoves = ctx.BuildFullMoves();
+        pokemon.Moves = availableMoves.Where(p => moves.Contains(p.Name)).ToList();
         
         return pokemon;
     }

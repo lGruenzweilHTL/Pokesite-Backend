@@ -37,12 +37,7 @@ public class BattleController(IPokemonService pokemonService) : ControllerBase
 
         // Create and start the GameLoop
         GameLoop game = new(player1, player2);
-        int websocketPort = /*game.StartWithWebSocket()*/5; // Start the WebSocket server and get the port
-        // TEMP
-        player1.InitializeTeam();
-        player2.InitializeTeam();
-        
-        Console.WriteLine(player1.CurrentPokemon.Moves.Count);
+        int websocketPort = game.StartWithWebSocket(); // Start the WebSocket server and get the port
         
         // Return the WebSocket URL to the client
         JsonNode response = new JsonObject
@@ -58,10 +53,5 @@ public class BattleController(IPokemonService pokemonService) : ControllerBase
             }
         };
         return Ok(response.ToJsonString());
-    }
-
-    [HttpPost("action")]
-    public IActionResult BattleAction([FromBody] object action) {
-        return NotFound("Not implemented yet.");
     }
 }

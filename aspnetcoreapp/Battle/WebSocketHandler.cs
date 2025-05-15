@@ -15,6 +15,7 @@ public class WebSocketHandler
         int assignedPort = ((IPEndPoint)_webSocketServer.LocalEndpoint).Port;
         Console.WriteLine($"WebSocket server started on port {assignedPort}");
 
+        // TODO
         /*Task.Run(() =>
         {
             while (true)

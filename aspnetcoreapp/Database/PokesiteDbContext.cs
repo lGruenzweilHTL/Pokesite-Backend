@@ -18,20 +18,25 @@ public class PokesiteDbContext : DbContext
         modelBuilder.Entity<EffectEntity>().ToTable("effects");
         modelBuilder.Entity<MoveEntity>().ToTable("moves");
         modelBuilder.Entity<MoveEffectsEntity>().ToTable("move_effects");
-        
+
         modelBuilder.Entity<StatsEntity>()
             .Property(s => s.SpecialAttack)
             .HasColumnName("spAttack");
-        
+
         modelBuilder.Entity<StatsEntity>()
             .Property(s => s.SpecialDefense)
             .HasColumnName("spDefense");
-        
+
         modelBuilder.Entity<StatsEntity>()
             .HasKey(s => s.PokemonId);
 
         modelBuilder.Entity<MoveEffectsEntity>()
             .HasKey(m => new { m.MoveId, m.EffectId });
+
+        // Map effectName column to Name property
+        modelBuilder.Entity<EffectEntity>()
+            .Property(e => e.Name)
+            .HasColumnName("effectName");
     }
 
     public IQueryable<Pokemon> BuildFullPokemon() {
@@ -53,8 +58,8 @@ public class PokesiteDbContext : DbContext
                 Types = result.Types
             });
     }
-
-    public IQueryable<Move> Test()
+    
+    public IQueryable<Move> BuildFullMoves()
     {
         return (from move in Moves
                 join moveEffect in MoveEffects on move.Id equals moveEffect.MoveId into moveEffects
@@ -83,44 +88,5 @@ public class PokesiteDbContext : DbContext
                     })
                     .ToArray()
             });
-    }
-    public IQueryable<Move> BuildFullMoves()
-    {
-        return Moves
-            .GroupJoin(MoveEffects, m => m.Id, me => me.MoveId, (m, moveEffects) => new { m = m, moveEffects })
-            .SelectMany(
-                temp => temp.moveEffects.DefaultIfEmpty(),
-                (temp, moveEffect) => new { temp.m, moveEffect }
-            )
-            .GroupJoin(Effects, temp => temp.moveEffect.EffectId, e => e.Id, (temp, effects) => new { temp.m, temp.moveEffect, effects })
-            .SelectMany(
-                temp => temp.effects.DefaultIfEmpty(),
-                (temp, effect) => new { temp.m, Effect = effect }
-            )
-            .GroupBy(
-                result => result.m,
-                result => result.Effect,
-                (key, effects) => new Move
-                {
-                    Name = key.Name,
-                    Description = key.Description,
-                    Type = key.Type,
-                    Power = key.Power,
-                    Accuracy = key.Accuracy,
-                    Special = key.Special,
-                    Priority = key.Priority,
-                    Status = key.Status,
-                    Effects = effects
-                        .Where(e => e != null)
-                        .Select(e => new Effect
-                        {
-                            Name = e.Name,
-                            Duration = e.Duration,
-                            Chance = e.Chance,
-                            Target = e.Target
-                        })
-                        .ToArray()
-                }
-            );
     }
 }

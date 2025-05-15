@@ -13,8 +13,8 @@ public class BattleController(IPokemonService pokemonService) : ControllerBase
 
         Pokemon[] player1Team = await Task.WhenAll(player1Json["pokemon"]
                 .AsArray()
-                .Select(async p => await pokemonService.GetFullPokemonByNameAsync(p["name"].ToString()))
-            );
+                .Select(async p => await pokemonService.GetPokemonWithMovesByNameAsync(p["name"].ToString(),
+                    p["moves"].AsArray().Select(m => m.ToString()).ToArray())));
         Player player1 = new Player(
             player1Json["name"].GetValue<string>(),
             !player1Json["human"]!.GetValue<bool>(),
@@ -22,17 +22,28 @@ public class BattleController(IPokemonService pokemonService) : ControllerBase
         
         Pokemon[] player2Team = await Task.WhenAll(player2Json["pokemon"]
             .AsArray()
-            .Select(async p => await pokemonService.GetFullPokemonByNameAsync(p["name"].ToString()))
-        );
+            .Select(async p => await pokemonService.GetPokemonWithMovesByNameAsync(p["name"].ToString(),
+                p["moves"].AsArray().Select(m => m.ToString()).ToArray())));
         Player player2 = new Player(
             player2Json["name"].GetValue<string>(),
             !player2Json["human"]!.GetValue<bool>(),
             player2Team);
+        
+        // Validate the players
+        if (player1.Team.Length <= 0 || player2.Team.Length <= 0
+            || player1.Team.Any(p => p == null) || player2.Team.Any(p => p == null)) {
+            return BadRequest("Both players must have at least one valid Pokémon.");
+        }
 
         // Create and start the GameLoop
         GameLoop game = new(player1, player2);
-        int websocketPort = game.StartWithWebSocket(); // Start the WebSocket server and get the port
-
+        int websocketPort = /*game.StartWithWebSocket()*/5; // Start the WebSocket server and get the port
+        // TEMP
+        player1.InitializeTeam();
+        player2.InitializeTeam();
+        
+        Console.WriteLine(player1.CurrentPokemon.Moves.Count);
+        
         // Return the WebSocket URL to the client
         JsonNode response = new JsonObject
         {
@@ -46,7 +57,7 @@ public class BattleController(IPokemonService pokemonService) : ControllerBase
                 ["hp"] = player2.CurrentPokemon.CurrentHp
             }
         };
-        return Ok(response);
+        return Ok(response.ToJsonString());
     }
 
     [HttpPost("action")]

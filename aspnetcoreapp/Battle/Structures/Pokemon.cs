@@ -34,6 +34,6 @@ public class Pokemon
 
     public static int CalculateStartingHp(Pokemon pokemon)
     {
-        return 2 * pokemon.Level + 10 + pokemon.BaseStats.Hp / 100;
+        return 2 * pokemon.Level + 10 + pokemon.BaseStats.Hp;
     }
 }

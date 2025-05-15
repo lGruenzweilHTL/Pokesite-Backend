@@ -6,4 +6,5 @@ public interface IPokemonService {
     Task<IEnumerable<Pokemon>> GetAllFullPokemonAsync();
     Task<Pokemon?> GetFullPokemonByNameAsync(string name);
     Task<Pokemon?> GetFullPokemonByIdAsync(int id);
+    Task<Pokemon?> GetPokemonWithMovesByNameAsync(string name, string[] moves);
 }

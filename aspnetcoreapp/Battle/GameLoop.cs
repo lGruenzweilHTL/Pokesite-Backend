@@ -19,6 +19,11 @@ public class GameLoop
     public int StartWithWebSocket()
     {
         _gameState = GameState.InProgress;
+        
+        // Initialize players
+        _player1.InitializeTeam();
+        _player2.InitializeTeam();
+        
         return _webSocketHandler.StartServer();
     }
 

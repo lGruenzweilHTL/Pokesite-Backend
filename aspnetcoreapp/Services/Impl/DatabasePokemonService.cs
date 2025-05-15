@@ -26,4 +26,16 @@ public class DatabasePokemonService(PokesiteDbContext ctx) : IPokemonService {
         return await ctx.BuildFullPokemon()
             .FirstOrDefaultAsync(p => p.Id == id);
     }
+
+    public async Task<Pokemon?> GetPokemonWithMovesByNameAsync(string name, string[] moves)
+    {
+        var pokemon = await GetFullPokemonByNameAsync(name);
+        if (pokemon == null) return null;
+
+        // TODO: uncomment and fix
+        //var availableMoves = ctx.BuildFullMoves();
+        //pokemon.Moves = availableMoves.Where(p => moves.Contains(p.Name)).ToList();
+        
+        return pokemon;
+    }
 }

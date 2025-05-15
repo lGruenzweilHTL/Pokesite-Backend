@@ -12,6 +12,13 @@ public class PokesiteDbContext : DbContext
     public DbSet<MoveEffectsEntity> MoveEffects { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        modelBuilder.Entity<PokemonEntity>().ToTable("pokemon");
+        modelBuilder.Entity<StatsEntity>().ToTable("stats");
+        modelBuilder.Entity<TypesEntity>().ToTable("types");
+        modelBuilder.Entity<EffectEntity>().ToTable("effects");
+        modelBuilder.Entity<MoveEntity>().ToTable("moves");
+        modelBuilder.Entity<MoveEffectsEntity>().ToTable("move_effects");
+        
         modelBuilder.Entity<StatsEntity>()
             .Property(s => s.SpecialAttack)
             .HasColumnName("spAttack");
@@ -46,11 +53,41 @@ public class PokesiteDbContext : DbContext
                 Types = result.Types
             });
     }
-    
-    public IQueryable<Move> BuildFullMove()
+
+    public IQueryable<Move> Test()
+    {
+        return (from move in Moves
+                join moveEffect in MoveEffects on move.Id equals moveEffect.MoveId into moveEffects
+                from moveEffect in moveEffects.DefaultIfEmpty()
+                join effect in Effects on moveEffect.EffectId equals effect.Id into effects
+                from effect in effects.DefaultIfEmpty()
+                group effect by move)
+            .Select(grouping => new Move
+            {
+                Name = grouping.Key.Name,
+                Description = grouping.Key.Description,
+                Type = grouping.Key.Type,
+                Power = grouping.Key.Power,
+                Accuracy = grouping.Key.Accuracy,
+                Special = grouping.Key.Special,
+                Priority = grouping.Key.Priority,
+                Status = grouping.Key.Status,
+                Effects = grouping
+                    .Where(e => e != null)
+                    .Select(e => new Effect
+                    {
+                        Name = e.Name,
+                        Duration = e.Duration,
+                        Chance = e.Chance,
+                        Target = e.Target
+                    })
+                    .ToArray()
+            });
+    }
+    public IQueryable<Move> BuildFullMoves()
     {
         return Moves
-            .GroupJoin(MoveEffects, m => m.Id, me => me.MoveId, (m, moveEffects) => new { m, moveEffects })
+            .GroupJoin(MoveEffects, m => m.Id, me => me.MoveId, (m, moveEffects) => new { m = m, moveEffects })
             .SelectMany(
                 temp => temp.moveEffects.DefaultIfEmpty(),
                 (temp, moveEffect) => new { temp.m, moveEffect }

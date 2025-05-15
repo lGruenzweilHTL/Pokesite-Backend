@@ -13,4 +13,13 @@ public class Player
     public int CurrentPokemonIndex { get; set; }
     public Pokemon CurrentPokemon => Team[CurrentPokemonIndex];
     public Pokemon[] AlivePokemons => Team.Where(p => !p.Fainted).ToArray();
+
+    public void InitializeTeam()
+    {
+        foreach (var pokemon in Team)
+        {
+            pokemon.MaxHp = Pokemon.CalculateStartingHp(pokemon);
+            pokemon.CurrentHp = pokemon.MaxHp;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 public class WebSocketHandler
 {
@@ -14,9 +15,8 @@ public class WebSocketHandler
 
         int assignedPort = ((IPEndPoint)_webSocketServer.LocalEndpoint).Port;
         Console.WriteLine($"WebSocket server started on port {assignedPort}");
-
-        // TODO
-        /*Task.Run(() =>
+        
+        Task.Run(() =>
         {
             while (true)
             {
@@ -26,7 +26,7 @@ public class WebSocketHandler
 
                 HandleWebSocketConnection();
             }
-        });*/
+        });
 
         return assignedPort;
     }
@@ -69,17 +69,50 @@ public class WebSocketHandler
                 int bytesRead = _clientStream!.Read(buffer, 0, buffer.Length);
                 if (bytesRead == 0) break;
 
-                string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                // Decode WebSocket frame
+                string message = DecodeWebSocketFrame(buffer, bytesRead);
                 Console.WriteLine($"Received message: {message}");
 
-                // Notify the GameLoop or other components about the message
-                OnMessageReceived?.Invoke(message);
+                // Parse JSON
+                try
+                {
+                    var json = System.Text.Json.JsonDocument.Parse(message);
+                    Console.WriteLine($"Processing JSON message: {json.RootElement}");
+                
+                    // Notify other components about the JSON message
+                    OnMessageReceived?.Invoke(json);
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"Invalid JSON received: {ex.Message}");
+                }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error while listening for messages: {ex.Message}");
         }
+    }
+
+    private string DecodeWebSocketFrame(byte[] buffer, int bytesRead)
+    {
+        // Decode WebSocket frame to extract the payload
+        int payloadLength = buffer[1] & 0x7F;
+        int maskStart = 2;
+        if (payloadLength == 126) maskStart = 4;
+        else if (payloadLength == 127) maskStart = 10;
+
+        byte[] mask = new byte[4];
+        Array.Copy(buffer, maskStart, mask, 0, 4);
+
+        int payloadStart = maskStart + 4;
+        byte[] payload = new byte[payloadLength];
+        for (int i = 0; i < payloadLength; i++)
+        {
+            payload[i] = (byte)(buffer[payloadStart + i] ^ mask[i % 4]);
+        }
+
+        return Encoding.UTF8.GetString(payload);
     }
 
     public void SendMessage(string message)
@@ -115,5 +148,5 @@ public class WebSocketHandler
         return acceptKey;
     }
 
-    public event Action<string>? OnMessageReceived;
+    public event Action<JsonDocument>? OnMessageReceived;
 }

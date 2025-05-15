@@ -1,4 +1,4 @@
-using System.Text.Json.Nodes;
+using System.Text.Json;
 
 public class GameLoop
 {
@@ -50,18 +50,18 @@ public class GameLoop
         }
     }
 
-    private void ProcessClientMessage(string message)
+    private void ProcessClientMessage(JsonDocument message)
     {
         // Handle the message (e.g., player actions)
         Console.WriteLine($"Processing message: {message}");
         
-        JsonNode node = JsonNode.Parse(message);
-        ReceiveAction(
-            node["type"].GetValue<string>(),
-            node["move"].GetValue<string>(), 
-            node["item"].GetValue<string>(),
-            node["switch_to"].GetValue<string>(),
-            node["player_id"].GetValue<int>());
+        // TODO: uncomment when battle system is done
+        /*ReceiveAction(
+            message.RootElement.GetProperty("type").GetString()!,
+            message.RootElement.GetProperty("move").GetString()!,
+            message.RootElement.GetProperty("item").GetString()!,
+            message.RootElement.GetProperty("switch_to").GetString()!,
+            message.RootElement.GetProperty("player_id").GetInt32());*/
     }
 
     public void SendMessage(string message)

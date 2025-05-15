@@ -27,6 +27,8 @@ public class GameLoop
         _player1.InitializeTeam();
         _player2.InitializeTeam();
         
+        StartNewTurn();
+        
         return _webSocketHandler.StartServer();
     }
 
@@ -34,7 +36,7 @@ public class GameLoop
         Player player = playerId == 1 ? _player1 : _player2;
         Pokemon playerPokemon = player.CurrentPokemon;
 
-        ActionType actionType = Enum.Parse<ActionType>(type);
+        ActionType actionType = Enum.Parse<ActionType>(type, true);
 
         // TODO: different classes for game action
         GameAction action;
@@ -63,6 +65,7 @@ public class GameLoop
 
         // if every player has submitted an action
         if (_currentActions.Count >= 2) {
+            Console.WriteLine("All actions collected. Executing turn...");
             ExecuteTurn();
         }
     }
@@ -77,6 +80,8 @@ public class GameLoop
             ProcessPlayerAction(player, action);
         }
         
+        SendMessage(JsonDocument.Parse("{\"message\": \"turn executed\"}"));
+        
         StartNewTurn();
     }
 
@@ -88,12 +93,14 @@ public class GameLoop
             var botBehaviour = TrainerBotHandler.GetDefault();
             var action = botBehaviour.ChooseAction(_player1, _player2);
             
+            Console.WriteLine($"Bot (id: 1) has chosen the {action.Type} action");
             CollectAction(_player1, action);
         }
         
         if (_player2.IsBot) {
             var botBehaviour = TrainerBotHandler.GetDefault();
             var action = botBehaviour.ChooseAction(_player2, _player1);
+            Console.WriteLine($"Bot (id: 2) has chosen the {action.Type} action");
             
             CollectAction(_player2, action);
         }
@@ -131,7 +138,7 @@ public class GameLoop
             message.RootElement.GetProperty("player_id").GetInt32());
     }
 
-    public void SendMessage(string message)
+    public void SendMessage(JsonDocument message)
     {
         _webSocketHandler.SendMessage(message);
     }

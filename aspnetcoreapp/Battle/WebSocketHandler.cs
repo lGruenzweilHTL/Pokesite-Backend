@@ -76,7 +76,7 @@ public class WebSocketHandler
                 // Parse JSON
                 try
                 {
-                    var json = System.Text.Json.JsonDocument.Parse(message);
+                    var json = JsonDocument.Parse(message);
                     Console.WriteLine($"Processing JSON message: {json.RootElement}");
                 
                     // Notify other components about the JSON message
@@ -115,7 +115,7 @@ public class WebSocketHandler
         return Encoding.UTF8.GetString(payload);
     }
 
-    public void SendMessage(string message)
+    public void SendMessage(object message)
     {
         if (_clientStream == null)
         {
@@ -123,12 +123,17 @@ public class WebSocketHandler
             return;
         }
 
-        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+        // Serialize the object to a JSON string
+        string jsonMessage = JsonSerializer.Serialize(message);
+
+        // Encode the JSON message into a WebSocket frame
+        byte[] messageBytes = Encoding.UTF8.GetBytes(jsonMessage);
         byte[] frame = new byte[2 + messageBytes.Length];
         frame[0] = 0x81; // FIN + text frame
         frame[1] = (byte)messageBytes.Length;
         Array.Copy(messageBytes, 0, frame, 2, messageBytes.Length);
 
+        // Send the frame
         _clientStream.Write(frame, 0, frame.Length);
     }
 

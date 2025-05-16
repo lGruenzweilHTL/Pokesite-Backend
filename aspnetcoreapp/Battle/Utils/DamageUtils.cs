@@ -7,10 +7,10 @@ public static class DamageUtils
         int power = move.Power;
         int a = move.Special ? attacker.GetModifiedStat(PokemonStat.SpecialAttack) : attacker.GetModifiedStat(PokemonStat.Attack);
         int d = move.Special ? defender.GetModifiedStat(PokemonStat.SpecialDefense) : defender.GetModifiedStat(PokemonStat.Defense);
-        double stab = move.Type == attacker.Types[0] || (attacker.Types.Count > 1 && move.Type == attacker.Types[1])
+        double stab = attacker.Types.GetAllTypes().Any(t => t == (int)move.Type)
             ? 1.5
             : 1.0;
-        double type = TypeUtils.MoveEffectiveness(move, defender);
+        double type = move.EffectivenessAgainst(defender);
 
         // The formula for damage calculation is as follows:
         var calc1 = 2 * level * critical / 5 + 2;

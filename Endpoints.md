@@ -66,7 +66,7 @@
 ```json
 {
   "type": "attack | item | switch",
-  "object": "string (move | item | switch target)"
+  "object": "string (move | item | switch target)",
   "player_id": "int"
 }
 ```

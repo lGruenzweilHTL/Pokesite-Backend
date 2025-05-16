@@ -1,5 +1,5 @@
 [Flags]
-public enum PokemonType {
+public enum PokemonTypeFlags {
     None = 0x0,
     Normal = 0x1,
     Fire = 0x2,

@@ -7,6 +7,7 @@ CREATE TABLE pokemon
     id INT UNIQUE, -- ID in the Pokedex
     name VARCHAR(50) NOT NULL UNIQUE,
     description VARCHAR(300),
+    typeFlags INT,
     PRIMARY KEY (id)
 );
 
@@ -20,15 +21,6 @@ CREATE TABLE stats
     spDefense INT NOT NULL,
     hp INT NOT NULL,
     PRIMARY KEY (pokemonId),
-    FOREIGN KEY (pokemonId) REFERENCES pokemon(id) ON DELETE CASCADE 
-);
-
-CREATE TABLE types
-(
-    id INT AUTO_INCREMENT,
-    pokemonId INT,
-    typeName VARCHAR(10) NOT NULL,
-    PRIMARY KEY (id),
     FOREIGN KEY (pokemonId) REFERENCES pokemon(id) ON DELETE CASCADE 
 );
 
@@ -56,11 +48,11 @@ CREATE TABLE moves
     id INT AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL UNIQUE,
     description VARCHAR(255),
-    type VARCHAR(10) NOT NULL,
+    typeFlags INT,
     power INT,
     accuracy INT,
     special BOOLEAN,
-    priority TINYINT,
+    priority TINYINT, -- -1 - 7
     status BOOLEAN,
     PRIMARY KEY (id)
 );
@@ -75,20 +67,20 @@ CREATE TABLE move_effects
     FOREIGN KEY (effectId) REFERENCES effects(id) ON DELETE CASCADE
 );
 
-INSERT INTO pokemon (id, name, description)
+INSERT INTO pokemon (id, name, typeFlags, description)
 VALUES
-    (6, 'Charizard', 'Charizard evolves from Charmeleon and gains the ability to fly. It’s a majestic yet intimidating Pokémon that breathes intense flames, capable of melting almost anything. Charizard has a fiery spirit and loves soaring high above the clouds, searching for worthy foes to battle.'),
-    (94, 'Gengar', 'Gengar is a mischievous and playful Pokémon known for its cunning tricks and ghostly nature. It thrives in the shadows, using its abilities to surprise and outsmart its opponents.'),
-    (149, 'Dragonite', 'Dragonite is a strong and gentle Pokémon known for its impressive flying abilities and kind nature. It is capable of circling the globe in just 16 hours and is often seen helping those in need.'),
-    (9, 'Blastoise', 'Blastoise is the final evolution of Squirtle, a massive Pokémon with cannons on its shell. These cannons can fire powerful jets of water with incredible force, capable of breaking through solid steel. Blastoise is both a guardian and a powerful battler.'),
-    (3, 'Venusaur', 'The final evolution of Bulbasaur, Venusaur is a massive Pokémon with a fully bloomed flower on its back. This flower releases a soothing fragrance to calm others. Venusaur is deeply connected to nature and thrives in sunny weather, using its flower to harness sunlight for powerful moves.'),
-    (11, 'Metapod', 'Metapod evolves from Caterpie, encasing itself in a hard shell to protect its body as it prepares for its final stage. It stays still, conserving energy for its transformation into a Butterfree.'),
-    (68, 'Machamp', 'Machamp is a strong and determined Pokémon, famous for its muscular build and fighting skills. It is a trusted companion in battles and admired for its bravery. Its unmatched strength and enduring spirit make it a formidable opponent and a valued ally.'),
-    (103, 'Exeggutor', 'Exeggutor, known as the Coconut Pokémon, has multiple heads that think independently, making it truly unique. It grows stronger in sunny environments and is believed to come from a tropical paradise where it naturally thrives, adding to its mysterious charm.'),
-    (100, 'Voltorb', 'Voltorb is a round and mysterious Pokémon that resembles a Poké Ball. It is known for its unpredictable nature and habit of suddenly exploding when approached, disturbed, or feeling threatened.'),
-    (18, 'Pidgeot', 'Pidgeot is the final evolution of Pidgey, a majestic bird Pokémon with powerful wings that allow it to fly at high speeds. Its feathers are sleek and glossy, often admired for their beauty.'),
-    (130, 'Gyarados', 'Gyarados is a fierce and majestic Pokémon known for its incredible power and intimidating appearance. Often found near water, it possesses both beauty and strength, making it a fascinating creature in the Pokémon world.'),
-    (95, 'Onix', 'Onix is a giant serpent-like Pokémon with a body made up of large boulders, renowned for its incredible strength and ability to drill through solid rock seamlessly. It is often found in caves and mountain tunnels.');
+    (6, 'Charizard', 514, 'Charizard evolves from Charmeleon and gains the ability to fly. It’s a majestic yet intimidating Pokémon that breathes intense flames, capable of melting almost anything. Charizard has a fiery spirit and loves soaring high above the clouds, searching for worthy foes to battle.'),
+    (94, 'Gengar', 8320, 'Gengar is a mischievous and playful Pokémon known for its cunning tricks and ghostly nature. It thrives in the shadows, using its abilities to surprise and outsmart its opponents.'),
+    (149, 'Dragonite', 16896, 'Dragonite is a strong and gentle Pokémon known for its impressive flying abilities and kind nature. It is capable of circling the globe in just 16 hours and is often seen helping those in need.'),
+    (9, 'Blastoise', 4, 'Blastoise is the final evolution of Squirtle, a massive Pokémon with cannons on its shell. These cannons can fire powerful jets of water with incredible force, capable of breaking through solid steel. Blastoise is both a guardian and a powerful battler.'),
+    (3, 'Venusaur', 144, 'The final evolution of Bulbasaur, Venusaur is a massive Pokémon with a fully bloomed flower on its back. This flower releases a soothing fragrance to calm others. Venusaur is deeply connected to nature and thrives in sunny weather, using its flower to harness sunlight for powerful moves.'),
+    (11, 'Metapod', 2048, 'Metapod evolves from Caterpie, encasing itself in a hard shell to protect its body as it prepares for its final stage. It stays still, conserving energy for its transformation into a Butterfree.'),
+    (68, 'Machamp', 64, 'Machamp is a strong and determined Pokémon, famous for its muscular build and fighting skills. It is a trusted companion in battles and admired for its bravery. Its unmatched strength and enduring spirit make it a formidable opponent and a valued ally.'),
+    (103, 'Exeggutor', 1040, 'Exeggutor, known as the Coconut Pokémon, has multiple heads that think independently, making it truly unique. It grows stronger in sunny environments and is believed to come from a tropical paradise where it naturally thrives, adding to its mysterious charm.'),
+    (100, 'Voltorb', 8, 'Voltorb is a round and mysterious Pokémon that resembles a Poké Ball. It is known for its unpredictable nature and habit of suddenly exploding when approached, disturbed, or feeling threatened.'),
+    (18, 'Pidgeot', 513, 'Pidgeot is the final evolution of Pidgey, a majestic bird Pokémon with powerful wings that allow it to fly at high speeds. Its feathers are sleek and glossy, often admired for their beauty.'),
+    (130, 'Gyarados', 516, 'Gyarados is a fierce and majestic Pokémon known for its incredible power and intimidating appearance. Often found near water, it possesses both beauty and strength, making it a fascinating creature in the Pokémon world.'),
+    (95, 'Onix', 4352, 'Onix is a giant serpent-like Pokémon with a body made up of large boulders, renowned for its incredible strength and ability to drill through solid rock seamlessly. It is often found in caves and mountain tunnels.');
 
 INSERT INTO stats (pokemonId, attack, defense, speed, spAttack, spDefense, hp)
 VALUES
@@ -104,21 +96,6 @@ VALUES
     (18, 80, 75, 101, 70, 70, 83),
     (130, 125, 79, 81, 60, 100, 95),
     (95, 45, 160, 70, 30, 45, 35);
-
-INSERT INTO types (pokemonId, typeName)
-VALUES
-    (6, 'fire'), (6, 'flying'),
-    (94, 'ghost'), (94, 'poison'),
-    (149, 'dragon'), (149, 'flying'),
-    (9, 'water'),
-    (3, 'grass'), (3, 'poison'),
-    (11, 'bug'),
-    (68, 'fighting'),
-    (103, 'grass'), (103, 'psychic'),
-    (100, 'electric'),
-    (18, 'normal'), (18, 'flying'),
-    (130, 'water'), (130, 'flying'),
-    (95, 'rock'), (95, 'ground');
 
 INSERT INTO items (name, description, type, amount)
 VALUES
@@ -138,13 +115,13 @@ VALUES
     ('Stat', 'Increase Attack', 3, 10),
     ('Stat', 'Decrease Defense', 2, 10);
 
-INSERT INTO moves (name, description, type, power, accuracy, special, priority, status)
+INSERT INTO moves (name, description, typeFlags, power, accuracy, special, priority, status)
 VALUES
-    ('Flamethrower', 'A powerful fire attack.', 'Fire', 90, 100, TRUE, 0, FALSE),
-    ('Thunder Wave', 'Paralyzes the opponent.', 'Electric', 0, 90, FALSE, 0, TRUE),
-    ('Swords Dance', 'Sharply raises attack.', 'Normal', 0, 0, FALSE, 0, FALSE),
-    ('Tail Whip', 'Lowers the opponent defense.', 'Normal', 0, 100, FALSE, 0, FALSE),
-    ('Fire Spin', 'Traps the opponent in a vortex of fire.', 'Fire', 35, 85, TRUE, 0, FALSE);
+    ('Flamethrower', 'A powerful fire attack.', 2, 90, 100, TRUE, 0, FALSE),
+    ('Thunder Wave', 'Paralyzes the opponent.', 8, 0, 90, FALSE, 0, TRUE),
+    ('Swords Dance', 'Sharply raises attack.', 1, 0, 0, FALSE, 0, FALSE),
+    ('Tail Whip', 'Lowers the opponent defense.', 1, 0, 100, FALSE, 0, FALSE),
+    ('Fire Spin', 'Traps the opponent in a vortex of fire.', 2, 35, 85, TRUE, 0, FALSE);
 
 INSERT INTO move_effects (moveId, effectId)
 VALUES

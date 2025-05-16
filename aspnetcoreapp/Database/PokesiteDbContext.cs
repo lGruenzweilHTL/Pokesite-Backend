@@ -6,7 +6,6 @@ public class PokesiteDbContext : DbContext
 
     public DbSet<PokemonEntity> Pokemon { get; set; }
     public DbSet<StatsEntity> Stats { get; set; }
-    public DbSet<TypesEntity> Types { get; set; }
     public DbSet<ItemEntity> Items { get; set; }
     public DbSet<EffectEntity> Effects { get; set; }
     public DbSet<MoveEntity> Moves { get; set; }
@@ -16,10 +15,10 @@ public class PokesiteDbContext : DbContext
         // Required for systems with case-sensitive SQL like Linux
         modelBuilder.Entity<PokemonEntity>().ToTable("pokemon");
         modelBuilder.Entity<StatsEntity>().ToTable("stats");
-        modelBuilder.Entity<TypesEntity>().ToTable("types");
         modelBuilder.Entity<EffectEntity>().ToTable("effects");
         modelBuilder.Entity<MoveEntity>().ToTable("moves");
         modelBuilder.Entity<MoveEffectsEntity>().ToTable("move_effects");
+        modelBuilder.Entity<ItemEntity>().ToTable("items");
 
         modelBuilder.Entity<StatsEntity>()
             .Property(s => s.SpecialAttack)
@@ -44,7 +43,6 @@ public class PokesiteDbContext : DbContext
     public IQueryable<Pokemon> BuildFullPokemon() {
         return Pokemon
             .Join(Stats, p => p.Id, s => s.PokemonId, (p, s) => new { p, s })
-            .GroupJoin(Types, ps => ps.p.Id, t => t.PokemonId, (ps, types) => new { ps.p, ps.s, Types = types.Select(t => t.TypeName).ToList() })
             .Select(result => new Pokemon {
                 Id = result.p.Id,
                 Name = result.p.Name,
@@ -57,7 +55,7 @@ public class PokesiteDbContext : DbContext
                     SpecialDefense = result.s.SpecialDefense,
                     Hp = result.s.Hp
                 },
-                Types = result.Types
+                Types = (PokemonTypeFlags)result.p.TypeFlags
             });
     }
     
@@ -73,7 +71,7 @@ public class PokesiteDbContext : DbContext
             {
                 Name = grouping.Key.Name,
                 Description = grouping.Key.Description,
-                Type = grouping.Key.Type,
+                Type = (PokemonTypeFlags)grouping.Key.TypeFlags,
                 Power = grouping.Key.Power,
                 Accuracy = grouping.Key.Accuracy,
                 Special = grouping.Key.Special,

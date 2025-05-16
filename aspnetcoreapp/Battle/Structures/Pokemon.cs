@@ -5,7 +5,7 @@ public class Pokemon
     public string Description { get; set; }
     public int Level { get; set; }
     public PokemonStats BaseStats { get; set; }
-    public List<string> Types { get; set; }
+    public PokemonTypeFlags Types { get; set; }
     public int CurrentHp { get; set; }
     public int MaxHp { get; set; }
     public List<Move> Moves { get; set; } = new List<Move>();

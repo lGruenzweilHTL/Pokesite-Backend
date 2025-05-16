@@ -1,43 +1,43 @@
 public static class TypeUtils {
-    public static readonly Dictionary<PokemonType, Dictionary<PokemonType, double>> TypeWeaknesses = new()
+    public static readonly Dictionary<PokemonTypeFlags, Dictionary<PokemonTypeFlags, double>> TypeWeaknesses = new()
 {
-    { PokemonType.Normal, new() { { PokemonType.Fighting, 2 }, { PokemonType.Ghost, 0 } } },
-    { PokemonType.Fire, new() { { PokemonType.Fire, 0.5 }, { PokemonType.Water, 2 }, { PokemonType.Grass, 0.5 }, { PokemonType.Ice, 0.5 }, { PokemonType.Ground, 2 }, { PokemonType.Bug, 0.5 }, { PokemonType.Rock, 2 }, { PokemonType.Steel, 0.5 }, { PokemonType.Fairy, 0.5 } } },
-    { PokemonType.Water, new() { { PokemonType.Fire, 0.5 }, { PokemonType.Water, 0.5 }, { PokemonType.Electric, 2 }, { PokemonType.Grass, 2 }, { PokemonType.Ice, 0.5 }, { PokemonType.Steel, 0.5 } } },
-    { PokemonType.Electric, new() { { PokemonType.Electric, 0.5 }, { PokemonType.Ground, 2 }, { PokemonType.Flying, 0.5 }, { PokemonType.Steel, 0.5 } } },
-    { PokemonType.Grass, new() { { PokemonType.Fire, 2 }, { PokemonType.Water, 0.5 }, { PokemonType.Electric, 0.5 }, { PokemonType.Grass, 0.5 }, { PokemonType.Ice, 2 }, { PokemonType.Poison, 2 }, { PokemonType.Ground, 0.5 }, { PokemonType.Flying, 2 }, { PokemonType.Bug, 2 } } },
-    { PokemonType.Ice, new() { { PokemonType.Fire, 2 }, { PokemonType.Ice, 0.5 }, { PokemonType.Fighting, 2 }, { PokemonType.Rock, 2 }, { PokemonType.Steel, 2 } } },
-    { PokemonType.Fighting, new() { { PokemonType.Flying, 2 }, { PokemonType.Psychic, 2 }, { PokemonType.Bug, 0.5 }, { PokemonType.Rock, 0.5 }, { PokemonType.Dark, 0.5 }, { PokemonType.Fairy, 2 } } },
-    { PokemonType.Poison, new() { { PokemonType.Grass, 0.5 }, { PokemonType.Fighting, 0.5 }, { PokemonType.Poison, 0.5 }, { PokemonType.Ground, 2 }, { PokemonType.Psychic, 2 }, { PokemonType.Bug, 0.5 }, { PokemonType.Fairy, 0.5 } } },
-    { PokemonType.Ground, new() { { PokemonType.Water, 2 }, { PokemonType.Grass, 2 }, { PokemonType.Ice, 2 }, { PokemonType.Poison, 0.5 }, { PokemonType.Rock, 0.5 }, { PokemonType.Electric, 0 } } },
-    { PokemonType.Flying, new() { { PokemonType.Electric, 2 }, { PokemonType.Grass, 0.5 }, { PokemonType.Fighting, 0.5 }, { PokemonType.Bug, 0.5 }, { PokemonType.Rock, 2 }, { PokemonType.Ice, 2 }, { PokemonType.Ground, 0 } } },
-    { PokemonType.Psychic, new() { { PokemonType.Fighting, 0.5 }, { PokemonType.Psychic, 0.5 }, { PokemonType.Bug, 2 }, { PokemonType.Ghost, 2 }, { PokemonType.Dark, 2 } } },
-    { PokemonType.Bug, new() { { PokemonType.Fire, 2 }, { PokemonType.Grass, 0.5 }, { PokemonType.Fighting, 0.5 }, { PokemonType.Ground, 0.5 }, { PokemonType.Flying, 2 }, { PokemonType.Rock, 2 } } },
-    { PokemonType.Rock, new() { { PokemonType.Normal, 0.5 }, { PokemonType.Fire, 0.5 }, { PokemonType.Water, 2 }, { PokemonType.Grass, 2 }, { PokemonType.Fighting, 2 }, { PokemonType.Poison, 0.5 }, { PokemonType.Ground, 2 }, { PokemonType.Flying, 0.5 }, { PokemonType.Steel, 2 } } },
-    { PokemonType.Ghost, new() { { PokemonType.Normal, 0 }, { PokemonType.Fighting, 0 }, { PokemonType.Poison, 0.5 }, { PokemonType.Bug, 0.5 }, { PokemonType.Ghost, 2 }, { PokemonType.Dark, 2 } } },
-    { PokemonType.Dragon, new() { { PokemonType.Fire, 0.5 }, { PokemonType.Water, 0.5 }, { PokemonType.Grass, 0.5 }, { PokemonType.Electric, 0.5 }, { PokemonType.Ice, 2 }, { PokemonType.Dragon, 2 }, { PokemonType.Fairy, 2 } } },
-    { PokemonType.Dark, new() { { PokemonType.Fighting, 2 }, { PokemonType.Psychic, 0 }, { PokemonType.Bug, 2 }, { PokemonType.Ghost, 0.5 }, { PokemonType.Dark, 0.5 }, { PokemonType.Fairy, 2 } } },
-    { PokemonType.Steel, new() { { PokemonType.Normal, 0.5 }, { PokemonType.Fire, 2 }, { PokemonType.Grass, 0.5 }, { PokemonType.Ice, 0.5 }, { PokemonType.Fighting, 2 }, { PokemonType.Poison, 0 }, { PokemonType.Ground, 2 }, { PokemonType.Flying, 0.5 }, { PokemonType.Psychic, 0.5 }, { PokemonType.Bug, 0.5 }, { PokemonType.Rock, 0.5 }, { PokemonType.Dragon, 0.5 }, { PokemonType.Steel, 0.5 }, { PokemonType.Fairy, 0.5 } } },
-    { PokemonType.Fairy, new() { { PokemonType.Fighting, 0.5 }, { PokemonType.Poison, 2 }, { PokemonType.Bug, 0.5 }, { PokemonType.Dragon, 0 }, { PokemonType.Dark, 0.5 }, { PokemonType.Steel, 2 } } }
+    { PokemonTypeFlags.Normal, new() { { PokemonTypeFlags.Fighting, 2 }, { PokemonTypeFlags.Ghost, 0 } } },
+    { PokemonTypeFlags.Fire, new() { { PokemonTypeFlags.Fire, 0.5 }, { PokemonTypeFlags.Water, 2 }, { PokemonTypeFlags.Grass, 0.5 }, { PokemonTypeFlags.Ice, 0.5 }, { PokemonTypeFlags.Ground, 2 }, { PokemonTypeFlags.Bug, 0.5 }, { PokemonTypeFlags.Rock, 2 }, { PokemonTypeFlags.Steel, 0.5 }, { PokemonTypeFlags.Fairy, 0.5 } } },
+    { PokemonTypeFlags.Water, new() { { PokemonTypeFlags.Fire, 0.5 }, { PokemonTypeFlags.Water, 0.5 }, { PokemonTypeFlags.Electric, 2 }, { PokemonTypeFlags.Grass, 2 }, { PokemonTypeFlags.Ice, 0.5 }, { PokemonTypeFlags.Steel, 0.5 } } },
+    { PokemonTypeFlags.Electric, new() { { PokemonTypeFlags.Electric, 0.5 }, { PokemonTypeFlags.Ground, 2 }, { PokemonTypeFlags.Flying, 0.5 }, { PokemonTypeFlags.Steel, 0.5 } } },
+    { PokemonTypeFlags.Grass, new() { { PokemonTypeFlags.Fire, 2 }, { PokemonTypeFlags.Water, 0.5 }, { PokemonTypeFlags.Electric, 0.5 }, { PokemonTypeFlags.Grass, 0.5 }, { PokemonTypeFlags.Ice, 2 }, { PokemonTypeFlags.Poison, 2 }, { PokemonTypeFlags.Ground, 0.5 }, { PokemonTypeFlags.Flying, 2 }, { PokemonTypeFlags.Bug, 2 } } },
+    { PokemonTypeFlags.Ice, new() { { PokemonTypeFlags.Fire, 2 }, { PokemonTypeFlags.Ice, 0.5 }, { PokemonTypeFlags.Fighting, 2 }, { PokemonTypeFlags.Rock, 2 }, { PokemonTypeFlags.Steel, 2 } } },
+    { PokemonTypeFlags.Fighting, new() { { PokemonTypeFlags.Flying, 2 }, { PokemonTypeFlags.Psychic, 2 }, { PokemonTypeFlags.Bug, 0.5 }, { PokemonTypeFlags.Rock, 0.5 }, { PokemonTypeFlags.Dark, 0.5 }, { PokemonTypeFlags.Fairy, 2 } } },
+    { PokemonTypeFlags.Poison, new() { { PokemonTypeFlags.Grass, 0.5 }, { PokemonTypeFlags.Fighting, 0.5 }, { PokemonTypeFlags.Poison, 0.5 }, { PokemonTypeFlags.Ground, 2 }, { PokemonTypeFlags.Psychic, 2 }, { PokemonTypeFlags.Bug, 0.5 }, { PokemonTypeFlags.Fairy, 0.5 } } },
+    { PokemonTypeFlags.Ground, new() { { PokemonTypeFlags.Water, 2 }, { PokemonTypeFlags.Grass, 2 }, { PokemonTypeFlags.Ice, 2 }, { PokemonTypeFlags.Poison, 0.5 }, { PokemonTypeFlags.Rock, 0.5 }, { PokemonTypeFlags.Electric, 0 } } },
+    { PokemonTypeFlags.Flying, new() { { PokemonTypeFlags.Electric, 2 }, { PokemonTypeFlags.Grass, 0.5 }, { PokemonTypeFlags.Fighting, 0.5 }, { PokemonTypeFlags.Bug, 0.5 }, { PokemonTypeFlags.Rock, 2 }, { PokemonTypeFlags.Ice, 2 }, { PokemonTypeFlags.Ground, 0 } } },
+    { PokemonTypeFlags.Psychic, new() { { PokemonTypeFlags.Fighting, 0.5 }, { PokemonTypeFlags.Psychic, 0.5 }, { PokemonTypeFlags.Bug, 2 }, { PokemonTypeFlags.Ghost, 2 }, { PokemonTypeFlags.Dark, 2 } } },
+    { PokemonTypeFlags.Bug, new() { { PokemonTypeFlags.Fire, 2 }, { PokemonTypeFlags.Grass, 0.5 }, { PokemonTypeFlags.Fighting, 0.5 }, { PokemonTypeFlags.Ground, 0.5 }, { PokemonTypeFlags.Flying, 2 }, { PokemonTypeFlags.Rock, 2 } } },
+    { PokemonTypeFlags.Rock, new() { { PokemonTypeFlags.Normal, 0.5 }, { PokemonTypeFlags.Fire, 0.5 }, { PokemonTypeFlags.Water, 2 }, { PokemonTypeFlags.Grass, 2 }, { PokemonTypeFlags.Fighting, 2 }, { PokemonTypeFlags.Poison, 0.5 }, { PokemonTypeFlags.Ground, 2 }, { PokemonTypeFlags.Flying, 0.5 }, { PokemonTypeFlags.Steel, 2 } } },
+    { PokemonTypeFlags.Ghost, new() { { PokemonTypeFlags.Normal, 0 }, { PokemonTypeFlags.Fighting, 0 }, { PokemonTypeFlags.Poison, 0.5 }, { PokemonTypeFlags.Bug, 0.5 }, { PokemonTypeFlags.Ghost, 2 }, { PokemonTypeFlags.Dark, 2 } } },
+    { PokemonTypeFlags.Dragon, new() { { PokemonTypeFlags.Fire, 0.5 }, { PokemonTypeFlags.Water, 0.5 }, { PokemonTypeFlags.Grass, 0.5 }, { PokemonTypeFlags.Electric, 0.5 }, { PokemonTypeFlags.Ice, 2 }, { PokemonTypeFlags.Dragon, 2 }, { PokemonTypeFlags.Fairy, 2 } } },
+    { PokemonTypeFlags.Dark, new() { { PokemonTypeFlags.Fighting, 2 }, { PokemonTypeFlags.Psychic, 0 }, { PokemonTypeFlags.Bug, 2 }, { PokemonTypeFlags.Ghost, 0.5 }, { PokemonTypeFlags.Dark, 0.5 }, { PokemonTypeFlags.Fairy, 2 } } },
+    { PokemonTypeFlags.Steel, new() { { PokemonTypeFlags.Normal, 0.5 }, { PokemonTypeFlags.Fire, 2 }, { PokemonTypeFlags.Grass, 0.5 }, { PokemonTypeFlags.Ice, 0.5 }, { PokemonTypeFlags.Fighting, 2 }, { PokemonTypeFlags.Poison, 0 }, { PokemonTypeFlags.Ground, 2 }, { PokemonTypeFlags.Flying, 0.5 }, { PokemonTypeFlags.Psychic, 0.5 }, { PokemonTypeFlags.Bug, 0.5 }, { PokemonTypeFlags.Rock, 0.5 }, { PokemonTypeFlags.Dragon, 0.5 }, { PokemonTypeFlags.Steel, 0.5 }, { PokemonTypeFlags.Fairy, 0.5 } } },
+    { PokemonTypeFlags.Fairy, new() { { PokemonTypeFlags.Fighting, 0.5 }, { PokemonTypeFlags.Poison, 2 }, { PokemonTypeFlags.Bug, 0.5 }, { PokemonTypeFlags.Dragon, 0 }, { PokemonTypeFlags.Dark, 0.5 }, { PokemonTypeFlags.Steel, 2 } } }
 };
     
-    public static double MoveEffectiveness(Move move, Pokemon defender) {
-        return MoveEffectiveness(move.Type, defender.Types.ToArray());
+    public static double EffectivenessAgainst(this Move move, Pokemon defender) {
+        return MoveEffectiveness(move.Type, defender.Types);
     }
-    public static double MoveEffectiveness(string moveType, string[] defenderTypes)
-    {
-        return PartialMoveEffectiveness(moveType, defenderTypes[0])
-            * defenderTypes.Length > 1
-                ? PartialMoveEffectiveness(moveType, defenderTypes[1])
-                : 1;
+    public static double MoveEffectiveness(PokemonTypeFlags moveType, PokemonTypeFlags defenderTypes) {
+        var def = defenderTypes.GetAllTypes().Select(Convert.ToDouble);
+        return def.Aggregate((a, b) => 
+            PartialMoveEffectiveness(moveType, (PokemonTypeFlags)a) 
+            * PartialMoveEffectiveness(moveType, (PokemonTypeFlags)b));
     }
 
-    private static double PartialMoveEffectiveness(string moveType, string defenderType) {
-        // TODO: convert all types to enum, parsing logic in pokemon builder
-        if (!Enum.TryParse<PokemonType>(moveType, out var move) || !Enum.TryParse<PokemonType>(defenderType, out var def)) {
-            return 0;
-        }
+    public static int[] GetAllTypes(this PokemonTypeFlags types) {
+        return (from flag in Enum.GetValues<PokemonTypeFlags>() 
+            where flag != PokemonTypeFlags.None && types.HasFlag(flag) 
+            select (int)flag).ToArray();
+    }
 
-        return TypeWeaknesses[def][move];
+    private static double PartialMoveEffectiveness(PokemonTypeFlags moveType, PokemonTypeFlags defenderType) {
+        return TypeWeaknesses[defenderType][moveType];
     }
 }

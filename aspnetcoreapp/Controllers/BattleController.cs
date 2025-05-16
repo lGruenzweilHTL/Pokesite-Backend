@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,7 +39,7 @@ public class BattleController(IPokemonService pokemonService) : ControllerBase
         // Create and start the GameLoop
         GameLoop game = new(player1, player2);
         int websocketPort = game.StartWithWebSocket(); // Start the WebSocket server and get the port
-        
+
         // Return the WebSocket URL to the client
         JsonNode response = new JsonObject
         {

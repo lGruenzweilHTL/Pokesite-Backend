@@ -32,12 +32,23 @@ CREATE TABLE types
     FOREIGN KEY (pokemonId) REFERENCES pokemon(id) ON DELETE CASCADE 
 );
 
+CREATE TABLE items
+(
+    id INT AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    type TINYINT,
+    amount INT,
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE effects
 (
     id INT AUTO_INCREMENT,
     effectType VARCHAR(50) NOT NULL,
     effectName VARCHAR(50) NOT NULL,
     duration INT,
+    chance INT,
     PRIMARY KEY (id)
 );
 CREATE TABLE moves
@@ -64,7 +75,6 @@ CREATE TABLE move_effects
     FOREIGN KEY (effectId) REFERENCES effects(id) ON DELETE CASCADE
 );
 
--- TODO: items
 INSERT INTO pokemon (id, name, description)
 VALUES
     (6, 'Charizard', 'Charizard evolves from Charmeleon and gains the ability to fly. It’s a majestic yet intimidating Pokémon that breathes intense flames, capable of melting almost anything. Charizard has a fiery spirit and loves soaring high above the clouds, searching for worthy foes to battle.'),
@@ -110,16 +120,24 @@ VALUES
     (130, 'water'), (130, 'flying'),
     (95, 'rock'), (95, 'ground');
 
-
--- Insert data into effects table
-INSERT INTO effects (effectType, effectName, duration)
+INSERT INTO items (name, description, type, amount)
 VALUES
-    ('Status', 'Burn', 5),
-    ('Status', 'Paralyze', 0),
-    ('Stat', 'Increase Attack', 3),
-    ('Stat', 'Decrease Defense', 2);
+    ('Potion', 'Heals 20 HP.', 1, 20),
+    ('Super Potion', 'Heals 50 HP.', 1, 50),
+    ('Hyper Potion', 'Heals 200 HP.', 1, 200),
+    ('Max Potion', 'Fully heals HP.', 1, 999),
+    ('Revive', 'Revives a fainted Pokémon with half HP.', 2, 0),
+    ('Full Restore', 'Fully heals HP and cures status conditions.', 3, 999),
+    ('Antidote', 'Cures poison status condition.', 4, 0),
+    ('Burn Heal', 'Cures burn status condition.', 5, 0);
 
--- Insert data into moves table
+INSERT INTO effects (effectType, effectName, duration, chance)
+VALUES
+    ('Status', 'Burn', 5, 10),
+    ('Status', 'Paralyze', 0, 10),
+    ('Stat', 'Increase Attack', 3, 10),
+    ('Stat', 'Decrease Defense', 2, 10);
+
 INSERT INTO moves (name, description, type, power, accuracy, special, priority, status)
 VALUES
     ('Flamethrower', 'A powerful fire attack.', 'Fire', 90, 100, TRUE, 0, FALSE),
@@ -128,8 +146,6 @@ VALUES
     ('Tail Whip', 'Lowers the opponent defense.', 'Normal', 0, 100, FALSE, 0, FALSE),
     ('Fire Spin', 'Traps the opponent in a vortex of fire.', 'Fire', 35, 85, TRUE, 0, FALSE);
 
--- Insert data into move_effects table
--- Retrieve the auto-generated IDs for moves and effects
 INSERT INTO move_effects (moveId, effectId)
 VALUES
     (1, 1), -- Flamethrower causes Burn

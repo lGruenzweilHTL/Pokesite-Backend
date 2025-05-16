@@ -7,6 +7,7 @@ public class PokesiteDbContext : DbContext
     public DbSet<PokemonEntity> Pokemon { get; set; }
     public DbSet<StatsEntity> Stats { get; set; }
     public DbSet<TypesEntity> Types { get; set; }
+    public DbSet<ItemEntity> Items { get; set; }
     public DbSet<EffectEntity> Effects { get; set; }
     public DbSet<MoveEntity> Moves { get; set; }
     public DbSet<MoveEffectsEntity> MoveEffects { get; set; }
@@ -85,7 +86,6 @@ public class PokesiteDbContext : DbContext
                         Name = e.Name,
                         Duration = e.Duration,
                         Chance = e.Chance,
-                        Target = e.Target
                     })
                     .ToArray()
             });

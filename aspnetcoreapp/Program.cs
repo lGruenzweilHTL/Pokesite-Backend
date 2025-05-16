@@ -23,6 +23,9 @@ builder.Services.AddScoped<IPokemonService, DatabasePokemonService>();
 builder.Services.AddScoped<IMoveService, DatabaseMoveService>();
 builder.Services.AddScoped<IItemService, DatabaseItemService>();
 
+builder.Services.AddSingleton<WebSocketHandler>();
+builder.Services.AddSingleton<GameManager>();
+
 var app = builder.Build();
 app.UseCors();
 

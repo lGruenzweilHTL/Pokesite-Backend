@@ -2,11 +2,80 @@
 
 ## Battle
 
-### Start Battle
+### Create Battle
+
+**Type**: `GET`
+**Endpoint**: `/battle/create`
+**Description**: Starts a new battle.
+**Request Body**: n. a.
+**Response**:
+
+```json
+{
+  "battle_guid": "string"
+}
+```
+
+### Join Battle
 
 **Type**: `POST`
-**Endpoint**: `/battle/start`
-**Description**: Starts a new battle.
+**Endpoint**: `/battle/join/{guid}`
+**Description**: Joins the battle with the specified GUID.
+**Request Body**: 
+
+```json
+{
+  "name": "string",
+  "human": "bool",
+  "pokemon": [
+    {
+      "name": "string",
+      "level": "int",
+      "moves": [
+        "string"
+      ]
+    }
+  ]
+}
+```
+
+**Response**:
+
+```json
+{
+  "player_guid": "string"
+}
+```
+
+## Start Battle
+
+**Type**: `GET`
+**Endpoint**: `battle/start/{guid}`
+**Description**: Start the battle with the specified GUID.
+**Request Body**: n. a.
+**Response**:
+
+```json
+{
+  "websocket_url": "string",
+  "player1": {
+    "guid": "string",
+    "pokemon": "string",
+    "hp": "int"
+  },
+  "player2": {
+    "guid": "string",
+    "pokemon": "string",
+    "hp": "int"
+  }
+}
+```
+
+## Create and Start Battle
+
+**Type**: `POST`
+**Endpoint**: `battle/start/new`
+**Description**: Creates a new battle with the specified players and start it.
 **Request Body**:
 
 ```json
@@ -44,12 +113,15 @@
 
 ```json
 {
+  "battle_guid": "string",
   "websocket_url": "string",
   "player1": {
+    "guid": "string",
     "pokemon": "string",
     "hp": "int"
   },
   "player2": {
+    "guid": "string",
     "pokemon": "string",
     "hp": "int"
   }
@@ -59,7 +131,7 @@
 ### Action
 
 **Type**: `Websocket connection`
-**Endpoint**: `websocket`
+**Endpoint**: `ws://127.0.0.1:8080`
 **Description**: Takes an action (attack, item, switch) in the battle.
 **Request Body**:
 
@@ -67,7 +139,8 @@
 {
   "type": "attack | item | switch",
   "object": "string (move | item | switch target)",
-  "player_id": "int"
+  "battle_guid": "string",
+  "player_guid": "string"
 }
 ```
 

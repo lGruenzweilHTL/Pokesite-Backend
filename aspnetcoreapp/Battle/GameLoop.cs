@@ -1,40 +1,53 @@
 using System.Text.Json;
 
-public class GameLoop
-{
-    private readonly Player _player1;
-    private readonly Player _player2;
-    private GameState _gameState;
+public class GameLoop {
+    public string Guid { get; }
+    public GameState GameState;
+    public int MaxPlayers { get; }
+    
+    public Dictionary<string, Player> ConnectedPlayers { get; }
+    
+    // Probably temp
+    public Player Player1 => ConnectedPlayers.Values.ElementAt(0);
+    public Player Player2 => ConnectedPlayers.Values.ElementAt(1);
+    
     private readonly WebSocketHandler _webSocketHandler;
-
     private readonly List<GameAction> _currentActions; // the collected actions of the current turn.
 
-    public GameLoop(Player player1, Player player2)
-    {
-        _player1 = player1;
-        _player2 = player2;
-        _gameState = GameState.NotStarted;
+    public GameLoop(string guid, int maxPlayers, WebSocketHandler socketHandler) {
+        Guid = guid;
+        MaxPlayers = maxPlayers;
+        GameState = GameState.NotStarted;
         _currentActions = [];
-        _webSocketHandler = new WebSocketHandler();
+        ConnectedPlayers = new Dictionary<string, Player>();
+        _webSocketHandler = socketHandler;
         _webSocketHandler.OnMessageReceived += ProcessClientMessage;
+        
+        Console.WriteLine("Created new game with guid: " + guid);
+    }
+
+    public bool ConnectPlayer(string guid, Player player) {
+        return ConnectedPlayers.Count < MaxPlayers
+               && GameState == GameState.NotStarted
+               && ConnectedPlayers.TryAdd(guid, player);
     }
 
     public int StartWithWebSocket()
     {
-        _gameState = GameState.InProgress;
+        GameState = GameState.InProgress;
         
-        // Initialize players
-        _player1.InitializeTeam();
-        _player2.InitializeTeam();
+        // Initialize Players
+        foreach (Player player in ConnectedPlayers.Values) {
+            player.InitializeTeam();
+        }
         
         StartNewTurn();
         
         return _webSocketHandler.StartServer();
     }
-
-    private void ReceiveAction(string actionType, string obj, int playerId) {
-        Player player = playerId == 1 ? _player1 : _player2;
-        Player opponent = playerId == 1 ? _player2 : _player1;
+    
+    private void ReceiveAction(string actionType, string obj, string guid) {
+        Player player = ConnectedPlayers[guid];
 
         GameAction action;
         
@@ -56,8 +69,7 @@ public class GameLoop
     // Executed, when actions for every player have been collected.
     private void ExecuteTurn() {
         // Process all collected actions in correct order
-        List<GameAction> orderedActions = _currentActions.OrderBy(a1 => a1, Comparer<GameAction>.Create((a1, a2) => 
-            a1.GoesBefore(a2) ? -1 : a2.GoesBefore(a1) ? 1 : 0)).ToList();
+        List<GameAction> orderedActions = _currentActions.Order().ToList();
         
         foreach (GameAction action in orderedActions) {
             ProcessGameAction(action);
@@ -71,20 +83,12 @@ public class GameLoop
     // Executed, when a turn is finished. Clears all collected actions and gets bot actions
     private void StartNewTurn() {
         _currentActions.Clear();
-        
-        if (_player1.IsBot) {
+
+        foreach (Player player in ConnectedPlayers.Values.Where(p => p.IsBot)) {
             var botBehaviour = TrainerBotHandler.GetDefault();
-            var action = botBehaviour.ChooseAction(_player1, _player2);
+            var action = botBehaviour.ChooseAction(player, player); // TODO: find opponent
             
             Console.WriteLine($"Bot (id: 1) has chosen the \"{action}\" action");
-            CollectAction(action);
-        }
-        
-        if (_player2.IsBot) {
-            var botBehaviour = TrainerBotHandler.GetDefault();
-            var action = botBehaviour.ChooseAction(_player2, _player1);
-            Console.WriteLine($"Bot (id: 2) has chosen the \"{action}\" action");
-            
             CollectAction(action);
         }
     }
@@ -102,19 +106,25 @@ public class GameLoop
         }
     }
 
-    private void ProcessClientMessage(JsonDocument message)
+    private void ProcessClientMessage(Guid clientId, JsonDocument message)
     {
         // Handle the message (e.g., player actions)
         Console.WriteLine($"Processing message: {message}");
+
+        string? guid = message.RootElement.GetProperty("battle_guid").GetString();
+        if (Guid != (guid ?? "")) {
+            Console.WriteLine("Discarding message...");
+            return;
+        }
         
         ReceiveAction(
             message.RootElement.GetProperty("type").GetString()!,
             message.RootElement.GetProperty("object").GetString()!,
-            message.RootElement.GetProperty("player_id").GetInt32());
+            message.RootElement.GetProperty("player_guid").GetString()!);
     }
 
     public void SendMessage(JsonDocument message)
     {
-        _webSocketHandler.SendMessage(message);
+        _webSocketHandler.SendMessageAsync(System.Guid.Empty, message);
     }
 }

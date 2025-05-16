@@ -4,55 +4,116 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("[controller]")]
-public class BattleController(IPokemonService pokemonService) : ControllerBase
+public class BattleController(IPokemonService pokemonService, GameManager gameManager) : ControllerBase
 {
-    [HttpPost("start")]
-    public async Task<IActionResult> StartBattle([FromBody] object battleRequest) {
-        JsonNode jsonNode = JsonNode.Parse(battleRequest.ToString()!);
-        JsonNode player1Json = jsonNode["player1"];
-        JsonNode player2Json = jsonNode["player2"];
+    [HttpGet("create")]
+    public IActionResult CreateBattle() {
+        string battleGuid = gameManager.NewGame();
 
-        Pokemon[] player1Team = await Task.WhenAll(player1Json["pokemon"]
-                .AsArray()
-                .Select(async p => await pokemonService.GetPokemonWithMovesByNameAsync(p["name"].ToString(),
-                    p["moves"].AsArray().Select(m => m.ToString()).ToArray())));
-        Player player1 = new Player(
-            player1Json["name"].GetValue<string>(),
-            !player1Json["human"]!.GetValue<bool>(),
-            player1Team);
-        
-        Pokemon[] player2Team = await Task.WhenAll(player2Json["pokemon"]
-            .AsArray()
-            .Select(async p => await pokemonService.GetPokemonWithMovesByNameAsync(p["name"].ToString(),
-                p["moves"].AsArray().Select(m => m.ToString()).ToArray())));
-        Player player2 = new Player(
-            player2Json["name"].GetValue<string>(),
-            !player2Json["human"]!.GetValue<bool>(),
-            player2Team);
-        
-        // Validate the players
-        if (player1.Team.Length <= 0 || player2.Team.Length <= 0
-            || player1.Team.Any(p => p == null) || player2.Team.Any(p => p == null)) {
-            return BadRequest("Both players must have at least one valid Pokémon.");
+        CreateBattleResponse response = new() {
+            BattleGuid = battleGuid
+        };
+        return Ok(response.ToJson());
+    }
+
+    [HttpPost("join/{guid}")]
+    public async Task<IActionResult> JoinBattle(string guid, [FromBody] JsonElement request) {
+        Player player = await CreatePlayerAsync(request);
+        bool success = gameManager.TryJoinGame(guid, player, out string playerGuid);
+
+        if (!success) {
+            return BadRequest($"The game with guid: {guid} does not exist.");
         }
 
-        // Create and start the GameLoop
-        GameLoop game = new(player1, player2);
-        int websocketPort = game.StartWithWebSocket(); // Start the WebSocket server and get the port
+        JoinBattleResponse response = new() {
+            PlayerGuid = playerGuid
+        };
+        return Ok(response.ToJson());
+    }
 
-        // Return the WebSocket URL to the client
-        JsonNode response = new JsonObject
-        {
-            ["websocket_url"] = $"ws://127.0.0.1:{websocketPort}",
-            ["player1"] = new JsonObject {
-                ["pokemon"] = player1.CurrentPokemon.Name,
-                ["hp"] = player1.CurrentPokemon.CurrentHp
+    [HttpGet("start/{guid}")]
+    public IActionResult StartBattle(string guid) {
+        bool success = gameManager.StartGame(guid, out GameLoop? game);
+
+        if (!success) {
+            return BadRequest($"The game with guid: {guid} does not exist.");
+        }
+
+        StartBattleResponse response = new() {
+            WebsocketUrl = "http://localhost:8080/ws/",
+            Players = game!.ConnectedPlayers.Select(p => new ResponsePlayerData {
+                Hp = p.Value.CurrentPokemon.CurrentHp,
+                Pokemon = p.Value.CurrentPokemon.Name,
+                Guid = p.Key
+            }).ToArray()
+        };
+        return Ok(response.ToJson());
+    }
+
+    [HttpPost("start/new")]
+    public async Task<IActionResult> StartNewBattle([FromBody] JsonElement request) {
+        string battleGuid = gameManager.NewGame();
+
+        Player player1 = await CreatePlayerAsync(request.GetProperty("player1"));
+        Player player2 = await CreatePlayerAsync(request.GetProperty("player2"));
+
+        GameLoop? game = null;
+        bool success = gameManager.TryJoinGame(battleGuid, player1, out string p1Guid)
+                       && gameManager.TryJoinGame(battleGuid, player2, out string p2Guid)
+                       && gameManager.StartGame(battleGuid, out game);
+
+        if (!success || game == null) {
+            return BadRequest("Something went wrong while creating battle with guid: " + battleGuid);
+        }
+
+        player1.IsBot = !request.GetProperty("player1").GetProperty("human").GetBoolean();
+        player2.IsBot = !request.GetProperty("player2").GetProperty("human").GetBoolean();
+
+        StartNewBattleResponse response = new() {
+            BattleGuid = battleGuid,
+            WebsocketUrl = "http://localhost:8080/ws/",
+            Player1 = new ResponsePlayerData {
+                Pokemon = game.Player1.CurrentPokemon.Name,
+                Hp = game.Player1.CurrentPokemon.CurrentHp,
+                Guid = game.ConnectedPlayers.Keys.ElementAt(0)
             },
-            ["player2"] = new JsonObject {
-                ["pokemon"] = player2.CurrentPokemon.Name,
-                ["hp"] = player2.CurrentPokemon.CurrentHp
+            Player2 = new ResponsePlayerData {
+                Pokemon = game.Player2.CurrentPokemon.Name,
+                Hp = game.Player2.CurrentPokemon.CurrentHp,
+                Guid = game.ConnectedPlayers.Keys.ElementAt(1)
             }
         };
-        return Ok(response.ToJsonString());
+        return Ok(response.ToJson());
+    }
+    
+    [HttpGet("active")]
+    public IActionResult GetAllActiveBattles() {
+        var battles = gameManager.ActiveGames
+            .Select(g => new {
+                battle_guid = g.Key,
+                players = g.Value.ConnectedPlayers.Values.Select(p => p.Name).ToArray(),
+                state = g.Value.GameState.ToString()
+            });
+        return Ok(JsonSerializer.Serialize(battles));
+    }
+
+    private async Task<Player> CreatePlayerAsync(JsonElement json) {
+        Pokemon[] team = await Task.WhenAll(
+            json.GetProperty("pokemon")!
+                .EnumerateArray()!
+                .Select(async p => await pokemonService.GetPokemonWithMovesByNameAsync(
+                    p.GetProperty("name").GetString()!,
+                    p.GetProperty("moves").EnumerateArray().Select(m => m.GetString()!).ToArray()!
+                ))
+                .Select(Task<Pokemon> (p) => p!)
+        );
+        
+        
+        Player player = new(
+            json.GetProperty("name").GetString()!,
+            false, // don't extract from json because only /battle/start/new requests have this
+            team);
+
+        return player;
     }
 }

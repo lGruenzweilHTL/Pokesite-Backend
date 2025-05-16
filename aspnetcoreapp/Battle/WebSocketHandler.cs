@@ -1,157 +1,94 @@
 using System.Net;
-using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Collections.Concurrent;
 
 public class WebSocketHandler
 {
-    private TcpListener? _webSocketServer;
-    private NetworkStream? _clientStream;
+    private readonly HttpListener _httpListener = new();
+    private readonly ConcurrentDictionary<Guid, WebSocket> _clients = new();
+
+    public event Action<Guid, JsonDocument>? OnMessageReceived;
 
     public int StartServer()
     {
-        _webSocketServer = new TcpListener(IPAddress.Loopback, 0); // Use port 0 to auto-assign a free port
-        _webSocketServer.Start();
+        string url = "http://localhost:8080/ws/";
+        _httpListener.Prefixes.Add(url);
+        _httpListener.Start();
+        Console.WriteLine($"WebSocket server started at {url}");
 
-        int assignedPort = ((IPEndPoint)_webSocketServer.LocalEndpoint).Port;
-        Console.WriteLine($"WebSocket server started on port {assignedPort}");
-        
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             while (true)
             {
-                TcpClient client = _webSocketServer.AcceptTcpClient();
-                Console.WriteLine("A client has connected to the WebSocket.");
-                _clientStream = client.GetStream();
-
-                HandleWebSocketConnection();
+                var context = await _httpListener.GetContextAsync();
+                if (context.Request.IsWebSocketRequest)
+                {
+                    _ = HandleClientAsync(context);
+                }
+                else
+                {
+                    context.Response.StatusCode = 400;
+                    context.Response.Close();
+                }
             }
         });
 
-        return assignedPort;
+        return 8080;
     }
 
-    private void HandleWebSocketConnection()
+    private async Task HandleClientAsync(HttpListenerContext context)
     {
+        var wsContext = await context.AcceptWebSocketAsync(null);
+        var webSocket = wsContext.WebSocket;
+        var clientId = Guid.NewGuid();
+        _clients[clientId] = webSocket;
+        Console.WriteLine($"Client {clientId} connected.");
+
         try
         {
-            byte[] buffer = new byte[1024];
-            int bytesRead = _clientStream!.Read(buffer, 0, buffer.Length);
-            string request = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-            if (request.Contains("Upgrade: websocket"))
+            var buffer = new byte[4096];
+            while (webSocket.State == WebSocketState.Open)
             {
-                string response = "HTTP/1.1 101 Switching Protocols\r\n" +
-                                  "Connection: Upgrade\r\n" +
-                                  "Upgrade: websocket\r\n" +
-                                  "Sec-WebSocket-Accept: " + GenerateWebSocketAcceptKey(request) + "\r\n\r\n";
+                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    break;
+                }
 
-                byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-                _clientStream.Write(responseBytes, 0, responseBytes.Length);
-                Console.WriteLine("WebSocket handshake completed.");
-
-                Task.Run(ListenForMessages);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error handling WebSocket connection: {ex.Message}");
-        }
-    }
-
-    private void ListenForMessages()
-    {
-        try
-        {
-            byte[] buffer = new byte[1024];
-            while (true)
-            {
-                int bytesRead = _clientStream!.Read(buffer, 0, buffer.Length);
-                if (bytesRead == 0) break;
-
-                // Decode WebSocket frame
-                string message = DecodeWebSocketFrame(buffer, bytesRead);
-                Console.WriteLine($"Received message: {message}");
-
-                // Parse JSON
+                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                 try
                 {
                     var json = JsonDocument.Parse(message);
-                    Console.WriteLine($"Processing JSON message: {json.RootElement}");
-                
-                    // Notify other components about the JSON message
-                    OnMessageReceived?.Invoke(json);
+                    OnMessageReceived?.Invoke(clientId, json);
                 }
                 catch (JsonException ex)
                 {
-                    Console.WriteLine($"Invalid JSON received: {ex.Message}");
+                    Console.WriteLine($"Invalid JSON: {ex.Message}");
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error while listening for messages: {ex.Message}");
+            Console.WriteLine($"Error with client {clientId}: {ex.Message}");
         }
-    }
-
-    private string DecodeWebSocketFrame(byte[] buffer, int bytesRead)
-    {
-        // Decode WebSocket frame to extract the payload
-        int payloadLength = buffer[1] & 0x7F;
-        int maskStart = 2;
-        if (payloadLength == 126) maskStart = 4;
-        else if (payloadLength == 127) maskStart = 10;
-
-        byte[] mask = new byte[4];
-        Array.Copy(buffer, maskStart, mask, 0, 4);
-
-        int payloadStart = maskStart + 4;
-        byte[] payload = new byte[payloadLength];
-        for (int i = 0; i < payloadLength; i++)
+        finally
         {
-            payload[i] = (byte)(buffer[payloadStart + i] ^ mask[i % 4]);
+            _clients.TryRemove(clientId, out _);
+            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+            webSocket.Dispose();
+            Console.WriteLine($"Client {clientId} disconnected.");
         }
-
-        return Encoding.UTF8.GetString(payload);
     }
 
-    public void SendMessage(object message)
+    public async Task SendMessageAsync(Guid clientId, object message)
     {
-        if (_clientStream == null)
+        if (_clients.TryGetValue(clientId, out var webSocket) && webSocket.State == WebSocketState.Open)
         {
-            Console.WriteLine("No client connected to send a message.");
-            return;
+            var json = JsonSerializer.Serialize(message);
+            var buffer = Encoding.UTF8.GetBytes(json);
+            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
         }
-
-        // Serialize the object to a JSON string
-        string jsonMessage = JsonSerializer.Serialize(message);
-
-        // Encode the JSON message into a WebSocket frame
-        byte[] messageBytes = Encoding.UTF8.GetBytes(jsonMessage);
-        byte[] frame = new byte[2 + messageBytes.Length];
-        frame[0] = 0x81; // FIN + text frame
-        frame[1] = (byte)messageBytes.Length;
-        Array.Copy(messageBytes, 0, frame, 2, messageBytes.Length);
-
-        // Send the frame
-        _clientStream.Write(frame, 0, frame.Length);
     }
-
-    private static string GenerateWebSocketAcceptKey(string request)
-    {
-        const string magicString = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-        string key = request.Split("\r\n")
-            .FirstOrDefault(line => line.StartsWith("Sec-WebSocket-Key:"))
-            ?.Split(":")[1]
-            .Trim();
-
-        string acceptKey = Convert.ToBase64String(
-            System.Security.Cryptography.SHA1.Create()
-                .ComputeHash(Encoding.UTF8.GetBytes(key + magicString))
-        );
-
-        return acceptKey;
-    }
-
-    public event Action<JsonDocument>? OnMessageReceived;
 }

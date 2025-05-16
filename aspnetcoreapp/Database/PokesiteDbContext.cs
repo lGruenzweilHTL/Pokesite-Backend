@@ -88,4 +88,13 @@ public class PokesiteDbContext : DbContext
                     .ToArray()
             });
     }
+
+    public IQueryable<Item> GetItems() {
+        return Items.Select(i => new Item {
+            Name = i.Name,
+            Description = i.Description,
+            Amount = i.Amount,
+            Type = i.Type
+        });
+    }
 }

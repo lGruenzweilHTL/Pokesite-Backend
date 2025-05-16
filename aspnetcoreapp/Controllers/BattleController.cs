@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("battle")]
+[Route("[controller]")]
 public class BattleController(IPokemonService pokemonService) : ControllerBase
 {
     [HttpPost("start")]

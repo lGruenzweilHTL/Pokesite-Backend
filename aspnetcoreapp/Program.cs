@@ -21,6 +21,7 @@ builder.Services.AddDbContext<PokesiteDbContext>(options => {
 // Add custom services
 builder.Services.AddScoped<IPokemonService, DatabasePokemonService>();
 builder.Services.AddScoped<IMoveService, DatabaseMoveService>();
+builder.Services.AddScoped<IItemService, DatabaseItemService>();
 
 var app = builder.Build();
 app.UseCors();

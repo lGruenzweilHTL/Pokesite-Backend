@@ -91,4 +91,10 @@ public class WebSocketHandler
             await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
         }
     }
+
+    public async Task BroadcastMessageAsync(object message) {
+        foreach ((Guid guid, WebSocket? socket) in _clients) {
+            await SendMessageAsync(guid, message);
+        }
+    }
 }

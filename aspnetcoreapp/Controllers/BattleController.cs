@@ -135,7 +135,8 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
         Player player = new(
             json.GetProperty("name").GetString()!,
             false,
-            team);
+            team,
+            Player.GetDefaultItems());
 
         return player;
     }

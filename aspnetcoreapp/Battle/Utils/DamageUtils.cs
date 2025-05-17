@@ -1,5 +1,8 @@
 public static class DamageUtils
 {
+    public static int CalculateDamage(AttackAction action) {
+        return CalculateDamage(action.Pokemon, action.Target.CurrentPokemon, action.Move);
+    }
     public static int CalculateDamage(Pokemon attacker, Pokemon defender, Move move)
     {
         int level = attacker.Level;

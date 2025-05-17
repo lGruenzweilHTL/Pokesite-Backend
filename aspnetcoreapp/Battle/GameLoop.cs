@@ -9,18 +9,16 @@ public class GameLoop {
     public List<(Player p, ITrainerBotBehaviour behaviour)> ConnectedBots { get; }
     public int NumPlayers => ConnectedPlayers.Count + ConnectedBots.Count;
     
-    // TEMP
-    public Player Player1 => ConnectedPlayers.Values.ElementAt(0);
-    public Player Player2 => ConnectedBots.ElementAt(0).p;
-    
     private readonly WebSocketHandler _webSocketHandler;
     private readonly List<GameAction> _currentActions; // the collected actions of the current turn.
+    private readonly List<string> _clientMessages; // Messages to send to the client for the current turn
 
     public GameLoop(string guid, int maxPlayers, WebSocketHandler socketHandler) {
         Guid = guid;
         MaxPlayers = maxPlayers;
         GameState = GameState.NotStarted;
         _currentActions = [];
+        _clientMessages = [];
         ConnectedBots = [];
         ConnectedPlayers = new Dictionary<string, Player>();
         _webSocketHandler = socketHandler;
@@ -54,6 +52,9 @@ public class GameLoop {
         foreach (Player player in ConnectedPlayers.Values) {
             player.InitializeTeam();
         }
+        foreach ((Player? p, ITrainerBotBehaviour? _) in ConnectedBots) {
+            p.InitializeTeam();
+        }
         
         StartNewTurn();
         
@@ -64,8 +65,34 @@ public class GameLoop {
         Player player = ConnectedPlayers[request.PlayerGuid];
 
         GameAction action;
-        
-        return; // TODO: construct correct action for the type
+
+        switch (request.ActionType) {
+            case "attack":
+                Move move = player.CurrentPokemon.Moves
+                                .Find(m => string.Equals(m.Name, request.Object, StringComparison.CurrentCultureIgnoreCase))
+                    ?? throw new ArgumentException($"{player.CurrentPokemon.Name} has no move with the name {request.Object}.");
+                action = new AttackAction(player, FindOpponentIn2PlayerGame(player), move);
+                break;
+            
+            case "item":
+                var item = player.Items
+                    .Find(i => i.Name.Equals(request.Object, StringComparison.CurrentCultureIgnoreCase));
+                if (item.Quantity <= 0)
+                    throw new ArgumentException($"{player.Name} doesn't have any items of type {request.Object}.");
+
+                action = new ItemAction(player, item);
+                break;
+            
+            case "switch":
+                if (!int.TryParse(request.Object, out int newPokemonIdx)
+                    || newPokemonIdx is < 0 or > 3)
+                    throw new ArgumentException($"{request.Object} is not a valid pokemon index.");
+                action = new SwitchAction(player, newPokemonIdx);
+                break;
+            
+            default:
+                throw new ArgumentException($"{request.ActionType} is not a valid action type");
+        }
         
         CollectAction(action);
     }
@@ -74,10 +101,14 @@ public class GameLoop {
         _currentActions.Add(action);
 
         // if every player has submitted an action
-        if (_currentActions.Count >= 2) {
+        if (_currentActions.Count >= NumPlayers) {
             Console.WriteLine("All actions collected. Executing turn...");
             ExecuteTurn();
         }
+    }
+
+    private bool IsGameOver() {
+        return false;
     }
 
     // Executed, when actions for every player have been collected.
@@ -89,7 +120,11 @@ public class GameLoop {
             ProcessGameAction(action);
         }
         
-        SendMessage(JsonDocument.Parse("{\"message\": \"turn executed\"}"));
+        if (IsGameOver()) {
+            _clientMessages.Add("Game ended with status: " + GameState);
+        }
+        
+        _webSocketHandler.BroadcastMessageAsync("done").GetAwaiter().GetResult();
         
         StartNewTurn();
     }
@@ -97,9 +132,10 @@ public class GameLoop {
     // Executed, when a turn is finished. Clears all collected actions and gets bot actions
     private void StartNewTurn() {
         _currentActions.Clear();
+        _clientMessages.Clear();
 
         foreach ((Player player, ITrainerBotBehaviour behaviour) in ConnectedBots) {
-            var action = behaviour.ChooseAction(player, player); // TODO: find opponent
+            var action = behaviour.ChooseAction(player, FindOpponentIn2PlayerGame(player));
             
             Console.WriteLine($"Bot {player.Name} has chosen the \"{action}\" action");
             CollectAction(action);
@@ -109,14 +145,42 @@ public class GameLoop {
     private void ProcessGameAction(GameAction action)
     {
         if (action is AttackAction attack) {
-            // handle attack
+            HandleAttack(attack);
         }
         else if (action is ItemAction item) {
-            // handle item
+            HandleItem(item);
         }
         else if (action is SwitchAction @switch) {
-            // handle switch
+            HandleSwitch(@switch);
         }
+    }
+
+    private void HandleAttack(AttackAction action) {
+        Pokemon defender = action.Target.CurrentPokemon;
+        int hitChance = action.Move.Accuracy * action.Pokemon.Accuracy / defender.Evasion;
+        if (!RandomUtils.Chance(hitChance)) {
+            _clientMessages.Add($"{action.Pokemon.Name}'s {action.Move} missed.");
+        }
+        
+        _clientMessages.Add($"{action.Pokemon.Name} used {action.Move.Name}");
+        _clientMessages.Add(action.Move.EffectivenessMessage(defender));
+        
+        if (action.Move.Status) return; // Status moves don't deal any damage
+
+        int damage = DamageUtils.CalculateDamage(action);
+        defender.CurrentHp -= damage;
+    }
+
+    private void HandleItem(ItemAction action) {
+        
+    }
+
+    private void HandleSwitch(SwitchAction action) {
+        Pokemon newPokemon = action.Player.Team[action.NewPokemonIndex];
+        if (newPokemon.Fainted) throw new ArgumentException("The selected pokemon from switch action has already fainted");
+        
+        _clientMessages.Add($"{action.Player.Name} switched to {newPokemon.Name}");
+        action.Player.CurrentPokemonIndex = action.NewPokemonIndex;
     }
 
     private void ProcessClientMessage(Guid clientId, JsonDocument message)
@@ -133,8 +197,16 @@ public class GameLoop {
         ReceiveAction(request);
     }
 
-    public void SendMessage(JsonDocument message)
+    private async Task SendMessage(JsonDocument message)
     {
-        _webSocketHandler.SendMessageAsync(System.Guid.Empty, message);
+        // TODO: only send to the correct client
+        await _webSocketHandler.BroadcastMessageAsync(message);
     }
+
+    // Finds the opponent of a player in a 2 player game; Asserts that there are only 2 players
+    private Player FindOpponentIn2PlayerGame(Player player) {
+        return ConnectedPlayers.Values
+            .Concat(ConnectedBots.Select(p => p.p))
+            .Single(p => p != player);
+    } 
 }

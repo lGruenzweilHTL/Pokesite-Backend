@@ -13,6 +13,7 @@ public class PokemonStats
         PokemonStat.Speed => Speed,
         PokemonStat.SpecialAttack => SpecialAttack,
         PokemonStat.SpecialDefense => SpecialDefense,
-        PokemonStat.Hp => Hp
+        PokemonStat.Hp => Hp,
+        _ => 1
     };
 }

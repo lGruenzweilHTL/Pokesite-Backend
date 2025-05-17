@@ -9,4 +9,9 @@ public class RandomTrainerBot : ITrainerBotBehaviour {
         Move move = currentPokemon.Moves.RandomElement();
         return new AttackAction(bot, opponent, move);
     }
+
+    public SwitchAction OnPokemonFainted(Player bot) {
+        int newPokemon = RandomUtils.FromRange(0, bot.AlivePokemons.Length);
+        return new SwitchAction(bot, newPokemon);
+    }
 }

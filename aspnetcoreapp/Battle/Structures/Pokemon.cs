@@ -11,7 +11,10 @@ public class Pokemon
     public List<Move> Moves { get; set; } = new List<Move>();
     public List<Effect> StatusEffects { get; set; } = new List<Effect>();
     public List<Effect> ConditionalEffects { get; set; } = new List<Effect>();
+    
     public bool Fainted => CurrentHp <= 0;
+    public int Accuracy => GetModifiedStat(PokemonStat.Accuracy);
+    public int Evasion => GetModifiedStat(PokemonStat.Evasion);
 
     private readonly Dictionary<PokemonStat, int> _statModifiers = new()
     {

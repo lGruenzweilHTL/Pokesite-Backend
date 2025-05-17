@@ -9,9 +9,9 @@ public class GameLoop {
     public List<(Player p, ITrainerBotBehaviour behaviour)> ConnectedBots { get; }
     public int NumPlayers => ConnectedPlayers.Count + ConnectedBots.Count;
     
-    // Probably temp
+    // TEMP
     public Player Player1 => ConnectedPlayers.Values.ElementAt(0);
-    public Player Player2 => ConnectedPlayers.Values.ElementAt(1);
+    public Player Player2 => ConnectedBots.ElementAt(0).p;
     
     private readonly WebSocketHandler _webSocketHandler;
     private readonly List<GameAction> _currentActions; // the collected actions of the current turn.
@@ -60,8 +60,8 @@ public class GameLoop {
         return _webSocketHandler.StartServer();
     }
     
-    private void ReceiveAction(string actionType, string obj, string guid) {
-        Player player = ConnectedPlayers[guid];
+    private void ReceiveAction(ActionRequest request) {
+        Player player = ConnectedPlayers[request.PlayerGuid];
 
         GameAction action;
         
@@ -98,11 +98,10 @@ public class GameLoop {
     private void StartNewTurn() {
         _currentActions.Clear();
 
-        foreach (Player player in ConnectedPlayers.Values.Where(p => p.IsBot)) {
-            var botBehaviour = TrainerBotHandler.GetDefault();
-            var action = botBehaviour.ChooseAction(player, player); // TODO: find opponent
+        foreach ((Player player, ITrainerBotBehaviour behaviour) in ConnectedBots) {
+            var action = behaviour.ChooseAction(player, player); // TODO: find opponent
             
-            Console.WriteLine($"Bot (id: 1) has chosen the \"{action}\" action");
+            Console.WriteLine($"Bot {player.Name} has chosen the \"{action}\" action");
             CollectAction(action);
         }
     }
@@ -123,18 +122,15 @@ public class GameLoop {
     private void ProcessClientMessage(Guid clientId, JsonDocument message)
     {
         // Handle the message (e.g., player actions)
-        Console.WriteLine($"Processing message: {message}");
-
-        string? guid = message.RootElement.GetProperty("battle_guid").GetString();
-        if (Guid != (guid ?? "")) {
+        ActionRequest request = message.Deserialize<ActionRequest>();
+        Console.WriteLine($"Processing message: {JsonSerializer.Serialize(request)}");
+        
+        if (Guid != request.BattleGuid) {
             Console.WriteLine("Discarding message...");
             return;
         }
         
-        ReceiveAction(
-            message.RootElement.GetProperty("type").GetString()!,
-            message.RootElement.GetProperty("object").GetString()!,
-            message.RootElement.GetProperty("player_guid").GetString()!);
+        ReceiveAction(request);
     }
 
     public void SendMessage(JsonDocument message)

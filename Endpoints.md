@@ -63,7 +63,7 @@
 
 **Response**: n. a.
 
-## Start Battle
+### Start Battle
 
 **Type**: `GET`
 **Endpoint**: `battle/start/{guid}`
@@ -75,19 +75,21 @@
 {
   "websocket_url": "string",
   "player1": {
-    "guid": "string",
+    "bot": "bool",
+    "guid": "string (only if bot is false)",
     "pokemon": "string",
     "hp": "int"
   },
   "player2": {
-    "guid": "string",
+    "bot": "bool",
+    "guid": "string (only if bot is false)",
     "pokemon": "string",
     "hp": "int"
   }
 }
 ```
 
-## Create and Start Battle
+### Create and Start Battle
 
 **Type**: `POST`
 **Endpoint**: `battle/start/new`
@@ -96,32 +98,22 @@
 
 ```json
 {
-  "player1": {
-    "name": "string",
-    "human": "bool",
-    "pokemon": [
-      {
-        "name": "string",
-        "level": "int",
-        "moves": [
-          "string"
-        ]
-      }
-    ]
-  },
-  "player2": {
-    "name": "string",
-    "human": "bool",
-    "pokemon": [
-      {
-        "name": "string",
-        "level": "int",
-        "moves": [
-          "string"
-        ]
-      }
-    ]
-  }
+  "players": [
+    {
+      "name": "string",
+      "human": "bool",
+      "behaviour": "string (optional, only used if human = false)",
+      "pokemon": [
+        {
+          "name": "string",
+          "level": "int",
+          "moves": [
+            "string"
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -131,17 +123,38 @@
 {
   "battle_guid": "string",
   "websocket_url": "string",
-  "player1": {
-    "guid": "string",
-    "pokemon": "string",
-    "hp": "int"
-  },
-  "player2": {
-    "guid": "string",
-    "pokemon": "string",
-    "hp": "int"
-  }
+  "players": [
+    {
+      "bot": "bool",
+      "guid": "string (guid if bot = false; 'n. a.' otherwise)",
+      "pokemon": "string",
+      "hp": "int"
+    }
+  ]
 }
+```
+
+### Get Active Battles
+
+**Type**: `GET`
+**Endpoint**: `battle/active`
+**Description**: Lists all active battles with connected players
+**Request Body**: n. a.
+**Response**:
+
+```json
+[
+  {
+    "battle_guid": "string",
+    "players": [
+      "string"
+    ],
+    "bots": [
+      "string (behaviourName)"
+    ],
+    "state": "string"
+  }
+]
 ```
 
 ### Action

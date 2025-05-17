@@ -1,6 +1,9 @@
 using System.Text.Json.Serialization;
 
 public struct ResponsePlayerData {
+    [JsonPropertyName("bot")]
+    public bool IsBot { get; set; }
+    
     [JsonPropertyName("guid")]
     public string Guid { get; set; }
     

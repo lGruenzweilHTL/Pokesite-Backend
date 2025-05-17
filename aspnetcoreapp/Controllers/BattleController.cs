@@ -18,7 +18,7 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
 
     [HttpPost("join/{guid}")]
     public async Task<IActionResult> JoinBattle(string guid, [FromBody] JsonElement request) {
-        Player player = await CreatePlayerAsync(request);
+        Player player = await CreateHumanPlayerAsync(request);
         bool success = gameManager.TryJoinGame(guid, player, out string playerGuid);
 
         if (!success) {
@@ -33,12 +33,7 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
 
     [HttpPost("join-bot/{guid}")]
     public async Task<IActionResult> JoinBot(string guid, [FromBody] JsonElement request) {
-        Player player = await CreatePlayerAsync(request);
-        player.IsBot = true;
-
-        string? behaviour = null;
-        if (request.TryGetProperty("behaviour", out JsonElement value)) behaviour = value.GetString();
-        
+        (Player player, string? behaviour) = await CreateBotPlayerAsync(request);
         bool success = gameManager.TryJoinAsBot(guid, player, behaviour);
 
         if (!success) {
@@ -61,44 +56,47 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
             Players = game!.ConnectedPlayers.Select(p => new ResponsePlayerData {
                 Hp = p.Value.CurrentPokemon.CurrentHp,
                 Pokemon = p.Value.CurrentPokemon.Name,
-                Guid = p.Key
+                Guid = p.Key,
+                IsBot = p.Value.IsBot
             }).ToArray()
         };
         return Ok(response.ToJson());
     }
-
+    
     [HttpPost("start/new")]
     public async Task<IActionResult> StartNewBattle([FromBody] JsonElement request) {
         string battleGuid = gameManager.NewGame();
 
-        Player player1 = await CreatePlayerAsync(request.GetProperty("player1"));
-        Player player2 = await CreatePlayerAsync(request.GetProperty("player2"));
+        var players = new List<(Player p, string? behaviour)>();
+        foreach (var json in request.GetProperty("players").EnumerateArray()) {
+            players.Add(await CreatePlayerAsync(json));
+        }
 
-        GameLoop? game = null;
-        bool success = gameManager.TryJoinGame(battleGuid, player1, out string p1Guid)
-                       && gameManager.TryJoinGame(battleGuid, player2, out string p2Guid)
-                       && gameManager.StartGame(battleGuid, out game);
+        bool success = true;
+        string[] guids = Enumerable.Repeat("n. a.", players.Count).ToArray();
 
+        for (int i = 0; i < players.Count; i++) {
+            (Player? p, string? behaviour) = players[i];
+            
+            if (p.IsBot) success &= gameManager.TryJoinAsBot(battleGuid, p, behaviour);
+            else success &= gameManager.TryJoinGame(battleGuid, p, out guids[i]);
+        }
+
+        success &= gameManager.StartGame(battleGuid, out GameLoop? game);
+        
         if (!success || game == null) {
             return BadRequest("Something went wrong while creating battle with guid: " + battleGuid);
         }
 
-        player1.IsBot = !request.GetProperty("player1").GetProperty("human").GetBoolean();
-        player2.IsBot = !request.GetProperty("player2").GetProperty("human").GetBoolean();
-
         StartNewBattleResponse response = new() {
             BattleGuid = battleGuid,
             WebsocketUrl = "http://localhost:8080/ws/",
-            Player1 = new ResponsePlayerData {
-                Pokemon = game.Player1.CurrentPokemon.Name,
-                Hp = game.Player1.CurrentPokemon.CurrentHp,
-                Guid = game.ConnectedPlayers.Keys.ElementAt(0)
-            },
-            Player2 = new ResponsePlayerData {
-                Pokemon = game.Player2.CurrentPokemon.Name,
-                Hp = game.Player2.CurrentPokemon.CurrentHp,
-                Guid = game.ConnectedPlayers.Keys.ElementAt(1)
-            }
+            Players = players.Select((p, i) => new ResponsePlayerData {
+                Guid = guids[i],
+                Hp = p.p.CurrentPokemon.CurrentHp,
+                Pokemon = p.p.CurrentPokemon.Name,
+                IsBot = p.p.IsBot
+            }).ToArray()
         };
         return Ok(response.ToJson());
     }
@@ -115,7 +113,14 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
         return Ok(JsonSerializer.Serialize(battles));
     }
 
-    private async Task<Player> CreatePlayerAsync(JsonElement json) {
+    // Requires the json to have the 'human' property
+    private async Task<(Player p, string? behaviour)> CreatePlayerAsync(JsonElement json) {
+        bool human = json.GetProperty("human").GetBoolean();
+        if (!human) return await CreateBotPlayerAsync(json);
+        
+        return (await CreateHumanPlayerAsync(json), null);
+    }
+    private async Task<Player> CreateHumanPlayerAsync(JsonElement json) {
         Pokemon[] team = await Task.WhenAll(
             json.GetProperty("pokemon")!
                 .EnumerateArray()!
@@ -129,9 +134,16 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
         
         Player player = new(
             json.GetProperty("name").GetString()!,
-            false, // don't extract from json because only /battle/start/new requests have this
+            false,
             team);
 
         return player;
+    }
+
+    private async Task<(Player p, string? behaviourName)> CreateBotPlayerAsync(JsonElement json) {
+        Player p = await CreateHumanPlayerAsync(json);
+        p.IsBot = true;
+        bool behaviourSpecified = json.TryGetProperty("behaviour", out JsonElement value);
+        return (p, behaviourSpecified ? value.GetString() : null);
     }
 }

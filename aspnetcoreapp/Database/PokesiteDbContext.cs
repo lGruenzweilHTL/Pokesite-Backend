@@ -32,12 +32,10 @@ public class PokesiteDbContext : DbContext
             .HasKey(s => s.PokemonId);
 
         modelBuilder.Entity<MoveEffectsEntity>()
-            .HasKey(m => new { m.MoveId, m.EffectId });
+            .HasKey(m => new { m.MoveId, m.EffectCode });
 
-        // Map effectName column to Name property
         modelBuilder.Entity<EffectEntity>()
-            .Property(e => e.Name)
-            .HasColumnName("effectName");
+            .HasKey(e => e.EffectCode);
     }
 
     public IQueryable<Pokemon> BuildFullPokemon() {
@@ -64,9 +62,9 @@ public class PokesiteDbContext : DbContext
         return (from move in Moves
                 join moveEffect in MoveEffects on move.Id equals moveEffect.MoveId into moveEffects
                 from moveEffect in moveEffects.DefaultIfEmpty()
-                join effect in Effects on moveEffect.EffectId equals effect.Id into effects
+                join effect in Effects on moveEffect.EffectCode equals effect.EffectCode into effects
                 from effect in effects.DefaultIfEmpty()
-                group effect by move)
+                group new { moveEffect, effect } by move)
             .Select(grouping => new Move
             {
                 Name = grouping.Key.Name,
@@ -78,12 +76,13 @@ public class PokesiteDbContext : DbContext
                 Priority = grouping.Key.Priority,
                 Status = grouping.Key.Status,
                 Effects = grouping
-                    .Where(e => e != null)
+                    .Where(e => e.effect != null && e.moveEffect != null)
                     .Select(e => new Effect
                     {
-                        Name = e.Name,
-                        Duration = e.Duration,
-                        Chance = e.Chance,
+                        Name = e.effect.EffectName,
+                        Code = e.effect.EffectCode,
+                        Duration = e.moveEffect.Duration,
+                        Chance = e.moveEffect.Chance,
                     })
                     .ToArray()
             });

@@ -2,18 +2,18 @@ SELECT
     m.id AS MoveId,
     m.name AS MoveName,
     m.description AS MoveDescription,
-    m.type AS MoveType,
+    m.typeFlags AS TypeFlags,
     m.power AS Power,
     m.accuracy AS Accuracy,
     m.special AS IsSpecial,
-    m.priority AS HasPriority,
+    m.priority AS Priority,
     m.status AS IsStatus,
-    GROUP_CONCAT(CONCAT(e.effectName, ' (', e.effectType, ')')) AS Effects
+    GROUP_CONCAT(e.effectName) AS Effects
 FROM
     moves m
         LEFT JOIN
     move_effects me ON m.id = me.moveId
         LEFT JOIN
-    effects e ON me.effectId = e.id
+    effects e ON me.effectCode = e.effectCode
 GROUP BY
-    m.id, m.name, m.description, m.type, m.power, m.accuracy, m.special, m.priority, m.status;
+    m.id, m.name, m.description, m.typeFlags, m.power, m.accuracy, m.special, m.priority, m.status;

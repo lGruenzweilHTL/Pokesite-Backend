@@ -36,13 +36,11 @@ CREATE TABLE items
 
 CREATE TABLE effects
 (
-    id INT AUTO_INCREMENT,
-    effectType VARCHAR(50) NOT NULL,
+    effectCode VARCHAR(50) NOT NULL UNIQUE,
     effectName VARCHAR(50) NOT NULL,
-    duration INT,
-    chance INT,
-    PRIMARY KEY (id)
+    PRIMARY KEY (effectCode)
 );
+
 CREATE TABLE moves
 (
     id INT AUTO_INCREMENT,
@@ -58,13 +56,16 @@ CREATE TABLE moves
 );
 
 -- Junction table for many-to-many relationship between moves and effects
+-- Now includes duration and chance, which are specific to each move-effect combination
 CREATE TABLE move_effects
 (
     moveId INT,
-    effectId INT,
-    PRIMARY KEY (moveId, effectId),
+    effectCode VARCHAR(50),
+    duration INT,
+    chance INT,
+    PRIMARY KEY (moveId, effectCode),
     FOREIGN KEY (moveId) REFERENCES moves(id) ON DELETE CASCADE,
-    FOREIGN KEY (effectId) REFERENCES effects(id) ON DELETE CASCADE
+    FOREIGN KEY (effectCode) REFERENCES effects(effectCode) ON DELETE CASCADE
 );
 
 INSERT INTO pokemon (id, name, typeFlags, description)
@@ -108,26 +109,102 @@ VALUES
     ('Antidote', 'Cures poison status condition.', 4, 0),
     ('Burn Heal', 'Cures burn status condition.', 5, 0);
 
-INSERT INTO effects (effectType, effectName, duration, chance)
+INSERT INTO effects (effectCode, effectName)
 VALUES
-    ('Status', 'Burn', 5, 10),
-    ('Status', 'Paralyze', 0, 10),
-    ('Stat', 'Increase Attack', 3, 10),
-    ('Stat', 'Decrease Defense', 2, 10);
+    -- Status effects
+    ('burn', 'Burn'),
+    ('paralyze', 'Paralyze'),
+    ('poison', 'Poison'),
+    ('confusion', 'Confusion'),
+    ('freeze', 'Freeze'),
+    ('sleep', 'Sleep'),
+    
+    -- Stat effects
+    ('atk_up', 'Increase Attack'),
+    ('def_down', 'Decrease Defense'),
+    ('def_up', 'Increase Defense'),
+    ('sp_atk_up', 'Increase Special Attack'),
+    ('opp_sp_atk_down', 'Decrease Opponent''s Special Attack'),
+    ('opp_sp_def_down', 'Decrease Opponent''s Special Defense'),
+    ('speed_up', 'Increase Speed'),
+    
+    -- Miscellaneous effects
+    ('flinch', 'Flinch'),
+    ('dest_bond', 'Destiny Bond'), -- Destiny bond fainting effect
+    ('faint', 'Faint'),
+    ('heal', 'Heal'),
+    ('entry_hazard', 'Entry Hazard'),
+    ('recoil', 'Recoil');
 
 INSERT INTO moves (name, description, typeFlags, power, accuracy, special, priority, status)
 VALUES
     ('Flamethrower', 'A powerful fire attack.', 2, 90, 100, TRUE, 0, FALSE),
-    ('Thunder Wave', 'Paralyzes the opponent.', 8, 0, 90, FALSE, 0, TRUE),
-    ('Swords Dance', 'Sharply raises attack.', 1, 0, 0, FALSE, 0, FALSE),
-    ('Tail Whip', 'Lowers the opponent defense.', 1, 0, 100, FALSE, 0, FALSE),
-    ('Fire Spin', 'Traps the opponent in a vortex of fire.', 2, 35, 85, TRUE, 0, FALSE);
+    ('Dragon Claw', '', 16384, 80, 100, FALSE, 0, FALSE),
+    ('Air Slash', '', 512, 75, 95, FALSE, 0, FALSE),
+    ('Fire Blast', '', 2, 110, 85, TRUE, 0, FALSE),
+    ('Shadow Ball', '', 8192, 80, 100, TRUE, 0, FALSE),
+    ('Dark Pulse', '', 32768, 80, 100, TRUE, 0, FALSE),
+    ('Sludge Bomb', '', 128, 90, 100, TRUE, 0, FALSE),
+    ('Destiny Bond', '', 8192, 0, 100, FALSE, 0, TRUE),
+    ('Dragon Dance', '', 16384, 0, 100, FALSE, 0, TRUE),
+    ('Outrage', '', 16384, 120, 100, FALSE, 0, FALSE),
+    ('Earthquake', '', 256, 100, 100, FALSE, 0, FALSE),
+    ('Fire Punch', '', 2, 75, 100, FALSE, 0, FALSE),
+    ('Hydro Pump', '', 4, 110, 80, TRUE, 0, FALSE),
+    ('Ice Beam', '', 32, 90, 100, TRUE, 0, FALSE),
+    ('Focus Blast', '', 64, 120, 70, TRUE, 0, FALSE),
+    ('Solar Beam', '', 16, 120, 100, TRUE, 0, FALSE),
+    ('Synthesis', '', 16, 0, 100, FALSE, 0, TRUE),
+    ('Harden', '', 1, 0, 100, FALSE, 0, TRUE),
+    ('Cross Chop', '', 64, 100, 80, FALSE, 0, FALSE),
+    ('Stone Edge', '', 4096, 100, 80, FALSE, 0, FALSE),
+    ('Ice Punch', '', 32, 75, 100, FALSE, 0, FALSE),
+    ('Psychic', '', 1024, 90, 100, TRUE, 0, FALSE),
+    ('Giga Drain', '', 16, 75, 100, TRUE, 0, FALSE),
+    ('Sleep Powder', '', 16, 0, 75, FALSE, 0, TRUE),
+    ('Thunderbolt', '', 8, 90, 100, TRUE, 0, FALSE),
+    ('Thunder Wave', '', 8, 0, 90, FALSE, 0, TRUE),
+    ('Explosion', '', 1, 250, 100, FALSE, 0, FALSE),
+    ('Charge Beam', '', 8, 50, 90, TRUE, 0, FALSE),
+    ('Brave Bird', '', 512, 120, 100, FALSE, 0, FALSE),
+    ('Return', '', 1, 102, 100, FALSE, 0, FALSE),
+    ('Roost', '', 512, 0, 100, FALSE, 0, TRUE),
+    ('Heat Wave', '', 2, 95, 90, TRUE, 0, FALSE),
+    ('Waterfall', '', 4, 80, 100, FALSE, 0, FALSE),
+    ('Ice Fang', '', 32, 65, 95, FALSE, 0, FALSE),
+    ('Stealth Rock', '', 4096, 0, 100, FALSE, 0, TRUE),
+    ('Toxic', '', 128, 0, 90, FALSE, 0, TRUE);
 
-INSERT INTO move_effects (moveId, effectId)
+-- move_effects now includes duration and chance for each move-effect pair
+INSERT INTO move_effects (moveId, effectCode, duration, chance)
 VALUES
-    (1, 1), -- Flamethrower causes Burn
-    (2, 2), -- Thunder Wave causes Paralyze
-    (3, 3), -- Swords Dance increases Attack
-    (4, 4), -- Tail Whip decreases Defense
-    (5, 1), -- Fire Spin causes Burn
-    (5, 4); -- Fire Spin decreases Defense
+    (1, 'burn', 2, 10),              -- Flamethrower: Burn for 2 turns, 10% chance
+    (3, 'flinch', 1, 30),            -- Air Slash: Flinch for 1 turn, 30% chance
+    (4, 'burn', 2, 10),              -- Fire Blast: Burn for 2 turns, 10% chance
+    (5, 'opp_sp_def_down', 0, 20),   -- Shadow Ball: Decrease Opponent's Special Defense, 20% chance
+    (6, 'flinch', 1, 20),            -- Dark Pulse: Flinch for 1 turn, 20% chance
+    (7, 'poison', 2, 30),            -- Sludge Bomb: Poison for 2 turns, 30% chance
+    (8, 'dest_bond', 1, 100),        -- Destiny Bond: Destiny Bond effect, 100% chance
+    (9, 'atk_up', 0, 100),           -- Dragon Dance: Increase Attack, 100% chance
+    (9, 'speed_up', 0, 100),         -- Dragon Dance: Increase Speed, 100% chance
+    (10, 'confusion', 2, 100),       -- Outrage: Confusion for 2 turns, 100% chance
+    (12, 'burn', 2, 10),             -- Fire Punch: Burn for 2 turns, 10% chance
+    (14, 'freeze', 2, 10),           -- Ice Beam: Freeze for 2 turns, 10% chance
+    (15, 'opp_sp_def_down', 0, 10),  -- Focus Blast: Decrease Opponent's Special Defense, 10% chance
+    (17, 'heal', 0, 100),            -- Synthesis: Heal, 100% chance
+    (18, 'def_up', 0, 100),          -- Harden: Increase Defense, 100% chance
+    (21, 'freeze', 2, 10),           -- Ice Punch: Freeze for 2 turns, 10% chance
+    (22, 'opp_sp_def_down', 0, 10),  -- Psychic: Decrease Opponent's Special Defense, 10% chance
+    (23, 'heal', 0, 100),            -- Giga Drain: Heal, 100% chance
+    (24, 'sleep', 2, 100),           -- Sleep Powder: Sleep for 2 turns, 100% chance
+    (25, 'paralyze', 2, 10),         -- Thunderbolt: Paralyze for 2 turns, 10% chance
+    (26, 'paralyze', 2, 100),        -- Thunder Wave: Paralyze for 2 turns, 100% chance
+    (27, 'faint', 0, 100),           -- Explosion: Faint, 100% chance
+    (28, 'sp_atk_up', 0, 70),        -- Charge Beam: Increase Special Attack, 70% chance
+    (29, 'recoil', 0, 100),          -- Brave Bird: Recoil, 100% chance
+    (31, 'heal', 0, 100),            -- Roost: Heal, 100% chance
+    (32, 'burn', 2, 10),             -- Heat Wave: Burn for 2 turns, 10% chance
+    (33, 'flinch', 1, 20),           -- Waterfall: Flinch for 1 turn, 20% chance
+    (34, 'freeze', 2, 10),           -- Ice Fang: Freeze for 2 turns, 10% chance
+    (35, 'entry_hazard', 0, 100),    -- Stealth Rock: Entry Hazard, 100% chance
+    (36, 'poison', 2, 100);          -- Toxic: Poison for 2 turns, 100% chance

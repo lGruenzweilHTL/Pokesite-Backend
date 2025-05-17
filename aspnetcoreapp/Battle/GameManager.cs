@@ -28,13 +28,18 @@ public class GameManager(WebSocketHandler socketHandler) {
     }
 
     public bool TryJoinGame(string guid, Player p, out string playerGuid) {
-        if (!ActiveGames.ContainsKey(guid)) {
+        if (!ActiveGames.TryGetValue(guid, out GameLoop? value)) {
             playerGuid = "";
             return false;
         }
         
         playerGuid = RandomUtils.Guid();
-        return ActiveGames[guid].ConnectPlayer(playerGuid, p);
+        return value.ConnectPlayer(playerGuid, p);
+    }
+
+    public bool TryJoinAsBot(string guid, Player p, string? preferredBehaviour = null) {
+        return ActiveGames.TryGetValue(guid, out GameLoop? value) 
+               && value.ConnectBot(p, preferredBehaviour);
     }
 
     public bool StartGame(string guid, out GameLoop? game) {

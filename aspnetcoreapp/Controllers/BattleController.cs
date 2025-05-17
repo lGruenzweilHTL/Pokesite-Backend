@@ -31,6 +31,23 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
         return Ok(response.ToJson());
     }
 
+    [HttpPost("join-bot/{guid}")]
+    public async Task<IActionResult> JoinBot(string guid, [FromBody] JsonElement request) {
+        Player player = await CreatePlayerAsync(request);
+        player.IsBot = true;
+
+        string? behaviour = null;
+        if (request.TryGetProperty("behaviour", out JsonElement value)) behaviour = value.GetString();
+        
+        bool success = gameManager.TryJoinAsBot(guid, player, behaviour);
+
+        if (!success) {
+            return BadRequest($"The game with guid: {guid} does not exist.");
+        }
+
+        return Ok();
+    }
+
     [HttpGet("start/{guid}")]
     public IActionResult StartBattle(string guid) {
         bool success = gameManager.StartGame(guid, out GameLoop? game);
@@ -92,6 +109,7 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
             .Select(g => new {
                 battle_guid = g.Key,
                 players = g.Value.ConnectedPlayers.Values.Select(p => p.Name).ToArray(),
+                bots = g.Value.ConnectedBots.Select(p => $"{p.p.Name} ({p.behaviour})").ToArray(),
                 state = g.Value.GameState.ToString()
             });
         return Ok(JsonSerializer.Serialize(battles));

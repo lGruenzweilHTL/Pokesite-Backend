@@ -26,7 +26,6 @@
 ```json
 {
   "name": "string",
-  "human": "bool",
   "pokemon": [
     {
       "name": "string",
@@ -39,13 +38,30 @@
 }
 ```
 
-**Response**:
+### Join Battle as Bot
+
+**Type**: `POST`
+**Endpoint**: `/battle/join-bot/{guid}`
+**Description**: Joins the battle with the specified GUID as a bot.
+**Request Body**:
 
 ```json
 {
-  "player_guid": "string"
+  "name": "string",
+  "behaviour": "string (optional)",
+  "pokemon": [
+    {
+      "name": "string",
+      "level": "int",
+      "moves": [
+        "string"
+      ]
+    }
+  ]
 }
 ```
+
+**Response**: n. a.
 
 ## Start Battle
 

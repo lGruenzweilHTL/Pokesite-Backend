@@ -6,6 +6,8 @@ public class GameLoop {
     public int MaxPlayers { get; }
     
     public Dictionary<string, Player> ConnectedPlayers { get; }
+    public List<(Player p, ITrainerBotBehaviour behaviour)> ConnectedBots { get; }
+    public int NumPlayers => ConnectedPlayers.Count + ConnectedBots.Count;
     
     // Probably temp
     public Player Player1 => ConnectedPlayers.Values.ElementAt(0);
@@ -19,6 +21,7 @@ public class GameLoop {
         MaxPlayers = maxPlayers;
         GameState = GameState.NotStarted;
         _currentActions = [];
+        ConnectedBots = [];
         ConnectedPlayers = new Dictionary<string, Player>();
         _webSocketHandler = socketHandler;
         _webSocketHandler.OnMessageReceived += ProcessClientMessage;
@@ -27,9 +30,20 @@ public class GameLoop {
     }
 
     public bool ConnectPlayer(string guid, Player player) {
-        return ConnectedPlayers.Count < MaxPlayers
+        return NumPlayers < MaxPlayers
                && GameState == GameState.NotStarted
                && ConnectedPlayers.TryAdd(guid, player);
+    }
+
+    public bool ConnectBot(Player player, string? preferredBehaviour = null) {
+        if (NumPlayers >= MaxPlayers
+            || GameState != GameState.NotStarted) return false;
+
+        ITrainerBotBehaviour behaviour = preferredBehaviour == null
+            ? TrainerBotHandler.GetDefault()
+            : TrainerBotHandler.FindByName(preferredBehaviour);
+        ConnectedBots.Add((player, behaviour));
+        return true;
     }
 
     public int StartWithWebSocket()

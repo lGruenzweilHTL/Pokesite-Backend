@@ -113,6 +113,13 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
         return Ok(JsonSerializer.Serialize(battles));
     }
 
+    [HttpGet("socket/start")]
+    public IActionResult StartWebsocket()
+    {
+        gameManager.StartServer();
+        return Ok();
+    }
+
     // Requires the json to have the 'human' property
     private async Task<(Player p, string? behaviour)> CreatePlayerAsync(JsonElement json) {
         bool human = json.GetProperty("human").GetBoolean();

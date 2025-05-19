@@ -58,7 +58,7 @@ public class GameLoop {
         
         StartNewTurn();
         
-        return _webSocketHandler.StartServer();
+        return 8080;
     }
     
     private void ReceiveAction(ActionRequest request) {

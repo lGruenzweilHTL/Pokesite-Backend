@@ -110,6 +110,13 @@ public class GameLoop {
     }
 
     private bool IsGameOver() {
+        if (ConnectedPlayers.Any(p => p.p.Defeated)
+            || ConnectedBots.Any(p => p.p.Defeated)) 
+        {
+            GameState = GameState.Over;
+            return true;
+        }
+
         return false;
     }
 
@@ -125,8 +132,15 @@ public class GameLoop {
         if (IsGameOver()) {
             _clientMessages.Add("Game ended with status: " + GameState);
         }
-        
-        _webSocketHandler.BroadcastMessageAsync("done").GetAwaiter().GetResult();
+
+        WebsocketResponse response = new()
+        {
+            GameState = GameState.ToString(),
+            Messages = _clientMessages.ToArray(),
+            Player1Hp = ConnectedPlayers[0].p.CurrentPokemon.CurrentHp, // TEMP
+            Player2Hp = ConnectedBots[0].p.CurrentPokemon.CurrentHp // TEMP
+        };
+        _webSocketHandler.BroadcastMessageAsync(response.ToJson()).GetAwaiter().GetResult();
         
         StartNewTurn();
     }

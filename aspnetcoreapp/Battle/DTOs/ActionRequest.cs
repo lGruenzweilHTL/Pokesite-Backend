@@ -9,7 +9,4 @@ public struct ActionRequest {
     
     [JsonPropertyName("battle_guid")]
     public string BattleGuid { get; set; }
-
-    [JsonPropertyName("player_guid")] 
-    public string PlayerGuid { get; set; }
 }

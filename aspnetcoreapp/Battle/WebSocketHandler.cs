@@ -11,7 +11,7 @@ public class WebSocketHandler
 
     public event Action<Guid, JsonDocument>? OnMessageReceived;
 
-    public int StartServer()
+    public void StartServer()
     {
         string url = "http://localhost:8080/ws/";
         _httpListener.Prefixes.Add(url);
@@ -34,15 +34,16 @@ public class WebSocketHandler
                 }
             }
         });
-
-        return 8080;
     }
 
     private async Task HandleClientAsync(HttpListenerContext context)
     {
+        string guid = context.Request.QueryString["guid"]
+            ?? throw new ArgumentException("Missing 'guid' query parameter.");
+        
         var wsContext = await context.AcceptWebSocketAsync(null);
         var webSocket = wsContext.WebSocket;
-        var clientId = Guid.NewGuid();
+        var clientId = Guid.Parse(guid);
         _clients[clientId] = webSocket;
         Console.WriteLine($"Client {clientId} connected.");
 

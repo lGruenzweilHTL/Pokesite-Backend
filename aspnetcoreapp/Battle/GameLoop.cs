@@ -1,11 +1,11 @@
 using System.Text.Json;
 
 public class GameLoop {
-    public string Guid { get; }
+    public string BattleGuid { get; }
     public GameState GameState;
     public int MaxPlayers { get; }
     
-    public Dictionary<string, Player> ConnectedPlayers { get; }
+    public List<(Guid guid, Player p)> ConnectedPlayers { get; }
     public List<(Player p, ITrainerBotBehaviour behaviour)> ConnectedBots { get; }
     public int NumPlayers => ConnectedPlayers.Count + ConnectedBots.Count;
     
@@ -13,24 +13,25 @@ public class GameLoop {
     private readonly List<GameAction> _currentActions; // the collected actions of the current turn.
     private readonly List<string> _clientMessages; // Messages to send to the client for the current turn
 
-    public GameLoop(string guid, int maxPlayers, WebSocketHandler socketHandler) {
-        Guid = guid;
+    public GameLoop(string battleGuid, int maxPlayers, WebSocketHandler socketHandler) {
+        BattleGuid = battleGuid;
         MaxPlayers = maxPlayers;
         GameState = GameState.NotStarted;
         _currentActions = [];
         _clientMessages = [];
         ConnectedBots = [];
-        ConnectedPlayers = new Dictionary<string, Player>();
+        ConnectedPlayers = [];
         _webSocketHandler = socketHandler;
         _webSocketHandler.OnMessageReceived += ProcessClientMessage;
         
-        Console.WriteLine("Created new game with guid: " + guid);
+        Console.WriteLine("Created new game with guid: " + battleGuid);
     }
 
-    public bool ConnectPlayer(string guid, Player player) {
+    public bool ConnectPlayer(Player player, out Guid guid) {
+        guid = Guid.NewGuid();
+        ConnectedPlayers.Add((guid, player));
         return NumPlayers < MaxPlayers
-               && GameState == GameState.NotStarted
-               && ConnectedPlayers.TryAdd(guid, player);
+               && GameState == GameState.NotStarted;
     }
 
     public bool ConnectBot(Player player, string? preferredBehaviour = null) {
@@ -44,25 +45,26 @@ public class GameLoop {
         return true;
     }
 
-    public int StartWithWebSocket()
+    public void StartWithWebSocket()
     {
         GameState = GameState.InProgress;
         
         // Initialize Players
-        foreach (Player player in ConnectedPlayers.Values) {
+        foreach (var (_, player) in ConnectedPlayers) {
             player.InitializeTeam();
         }
-        foreach ((Player? p, ITrainerBotBehaviour? _) in ConnectedBots) {
+        foreach ((Player p, ITrainerBotBehaviour? _) in ConnectedBots) {
             p.InitializeTeam();
         }
-        
+
         StartNewTurn();
-        
-        return 8080;
     }
     
-    private void ReceiveAction(ActionRequest request) {
-        Player player = ConnectedPlayers[request.PlayerGuid];
+    private void ReceiveAction(Guid playerGuid, ActionRequest request)
+    {
+        Player player = ConnectedPlayers
+            .Find(p => p.guid == playerGuid).p
+            ?? throw new ArgumentException($"Player with guid {playerGuid} not found.");
 
         GameAction action;
 
@@ -183,18 +185,34 @@ public class GameLoop {
         action.Player.CurrentPokemonIndex = action.NewPokemonIndex;
     }
 
+
+    /*
+     * 2 Solutions to link player guid to client guid:
+     *
+     * 1. Assign client guid only when connecting to the websocket
+     *      - possible race conditions for clients (connect before game starts)
+     *          - not necessarily a problem, but may be annoying
+     *      - annoying setup but may be worth it
+     *      - more secure
+     *
+     * 2. Save both guids in the GameLoop
+     *      - annoying to implement
+     *      - don't really want to do this
+     *      - more responsibility for client (sending guid with each message)
+     */
     private void ProcessClientMessage(Guid clientId, JsonDocument message)
     {
         // Handle the message (e.g., player actions)
         ActionRequest request = message.Deserialize<ActionRequest>();
         Console.WriteLine($"Processing message: {JsonSerializer.Serialize(request)}");
         
-        if (Guid != request.BattleGuid) {
+        if (BattleGuid != request.BattleGuid
+            || ConnectedPlayers.All(p => p.guid != clientId)){
             Console.WriteLine("Discarding message...");
             return;
         }
         
-        ReceiveAction(request);
+        ReceiveAction(clientId, request);
     }
 
     private async Task SendMessage(JsonDocument message)
@@ -205,7 +223,7 @@ public class GameLoop {
 
     // Finds the opponent of a player in a 2 player game; Asserts that there are only 2 players
     private Player FindOpponentIn2PlayerGame(Player player) {
-        return ConnectedPlayers.Values
+        return ConnectedPlayers.Select(pair => pair.p)
             .Concat(ConnectedBots.Select(p => p.p))
             .Single(p => p != player);
     } 

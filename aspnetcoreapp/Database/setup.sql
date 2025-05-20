@@ -4,7 +4,7 @@ USE pokesite;
 
 CREATE TABLE pokemon
 (
-    id INT UNIQUE, -- ID in the Pokedex
+    id INT, -- ID in the Pokedex
     name VARCHAR(50) NOT NULL UNIQUE,
     description VARCHAR(300),
     typeFlags INT,

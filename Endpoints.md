@@ -38,6 +38,8 @@
 }
 ```
 
+**Response**: n. a.
+
 ### Join Battle as Bot
 
 **Type**: `POST`
@@ -69,51 +71,42 @@
 **Endpoint**: `battle/start/{guid}`
 **Description**: Start the battle with the specified GUID.
 **Request Body**: n. a.
-**Response**:
+**Response**: n. a.
 
-```json
-{
-  "websocket_url": "string",
-  "player1": {
-    "bot": "bool",
-    "guid": "string (only if bot is false)",
-    "pokemon": "string",
-    "hp": "int"
-  },
-  "player2": {
-    "bot": "bool",
-    "guid": "string (only if bot is false)",
-    "pokemon": "string",
-    "hp": "int"
-  }
-}
-```
-
-### Create and Start Battle
+### Create and Start Bot match
 
 **Type**: `POST`
-**Endpoint**: `battle/start/new`
-**Description**: Creates a new battle with the specified players and start it.
+**Endpoint**: `battle/start/bot`
+**Description**: Creates a new battle with the specified player and bot and starts it.
 **Request Body**:
 
 ```json
 {
-  "players": [
-    {
-      "name": "string",
-      "human": "bool",
-      "behaviour": "string (optional, only used if human = false)",
-      "pokemon": [
-        {
-          "name": "string",
-          "level": "int",
-          "moves": [
-            "string"
-          ]
-        }
-      ]
-    }
-  ]
+  "player": {
+    "name": "string",
+    "pokemon": [
+      {
+        "name": "string",
+        "level": "int",
+        "moves": [
+          "string"
+        ]
+      }
+    ]
+  },
+  "bot": {
+    "name": "string",
+    "behaviour": "string (optional)",
+    "pokemon": [
+      {
+        "name": "string",
+        "level": "int",
+        "moves": [
+          "string"
+        ]
+      }
+    ]
+  }
 }
 ```
 
@@ -122,15 +115,7 @@
 ```json
 {
   "battle_guid": "string",
-  "websocket_url": "string",
-  "players": [
-    {
-      "bot": "bool",
-      "guid": "string (guid if bot = false; 'n. a.' otherwise)",
-      "pokemon": "string",
-      "hp": "int"
-    }
-  ]
+  "websocket_url": "string"
 }
 ```
 
@@ -168,8 +153,7 @@
 {
   "type": "attack | item | switch",
   "object": "string (move | item | switch target)",
-  "battle_guid": "string",
-  "player_guid": "string"
+  "battle_guid": "string"
 }
 ```
 

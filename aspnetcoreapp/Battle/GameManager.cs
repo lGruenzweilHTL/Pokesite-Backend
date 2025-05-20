@@ -27,14 +27,14 @@ public class GameManager(WebSocketHandler socketHandler) {
         return guid;
     }
 
-    public bool TryJoinGame(string guid, Player p, out string playerGuid) {
+    public bool TryJoinGame(string guid, Player p, out Guid playerGuid)
+    {
+        playerGuid = Guid.Empty;
         if (!ActiveGames.TryGetValue(guid, out GameLoop? value)) {
-            playerGuid = "";
             return false;
         }
         
-        playerGuid = RandomUtils.Guid();
-        return value.ConnectPlayer(playerGuid, p);
+        return value.ConnectPlayer(p, out playerGuid);
     }
 
     public bool TryJoinAsBot(string guid, Player p, string? preferredBehaviour = null) {

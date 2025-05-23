@@ -129,6 +129,14 @@ public class GameLoop {
             ProcessGameAction(action);
         }
         
+        // Apply status effects
+        foreach (var (_, player) in ConnectedPlayers) {
+            player.CurrentPokemon.ApplyStatusEffects();
+        }
+        foreach (var (player, _) in ConnectedBots) {
+            player.CurrentPokemon.ApplyStatusEffects();
+        }
+        
         if (IsGameOver()) {
             _clientMessages.Add("Game ended with status: " + GameState);
         }
@@ -172,6 +180,12 @@ public class GameLoop {
     }
 
     private void HandleAttack(AttackAction action) {
+        if (!action.Pokemon.CanAttack(out string message)
+            || action.Pokemon.Fainted)
+        {
+            _clientMessages.Add(message);
+        }
+        
         Pokemon defender = action.Target.CurrentPokemon;
         int hitChance = action.Move.Accuracy * action.Pokemon.Accuracy / defender.Evasion;
         if (!RandomUtils.Chance(hitChance)) {

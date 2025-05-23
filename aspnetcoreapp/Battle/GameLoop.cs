@@ -45,7 +45,7 @@ public class GameLoop {
         return true;
     }
 
-    public void StartWithWebSocket()
+    public void StartGame()
     {
         GameState = GameState.InProgress;
         

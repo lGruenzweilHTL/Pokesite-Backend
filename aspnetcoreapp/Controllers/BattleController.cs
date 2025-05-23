@@ -90,14 +90,6 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
             });
         return Ok(JsonSerializer.Serialize(battles));
     }
-
-    // TODO: start on startup
-    [HttpGet("socket/start")]
-    public IActionResult StartWebsocket()
-    {
-        gameManager.StartServer();
-        return Ok();
-    }
     
     private async Task<Player> CreateHumanPlayerAsync(JsonElement json) {
         Pokemon[] team = await Task.WhenAll(

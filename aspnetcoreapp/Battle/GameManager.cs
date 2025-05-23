@@ -14,12 +14,18 @@
  */
 
 public class GameManager(WebSocketHandler socketHandler) {
-    public const int MAX_PLAYERS = 2;
+    private const int MAX_PLAYERS = 2;
+    private bool _isServerStarted = false;
     
     public Dictionary<string, GameLoop> ActiveGames = new();
 
     // Returns the GUID of the new game, to be returned to clients
     public string NewGame() {
+        if (!_isServerStarted) {
+            socketHandler.StartServer();
+            _isServerStarted = true;
+        }
+        
         string guid = RandomUtils.Guid();
         GameLoop game = new(guid, MAX_PLAYERS, socketHandler);
         ActiveGames.Add(guid, game);
@@ -45,12 +51,7 @@ public class GameManager(WebSocketHandler socketHandler) {
     public bool StartGame(string guid, out GameLoop? game) {
         if (!ActiveGames.TryGetValue(guid, out game)) return false;
 
-        game.StartWithWebSocket();
+        game.StartGame();
         return true;
-    }
-
-    public void StartServer()
-    {
-        socketHandler.StartServer();
     }
 }

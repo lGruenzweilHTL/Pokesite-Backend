@@ -178,11 +178,13 @@ public class GameLoop {
             _clientMessages.Add($"{action.Pokemon.Name}'s {action.Move} missed.");
         }
         
+        action.Move.AddEffects(action.Pokemon, defender);
+        
         _clientMessages.Add($"{action.Pokemon.Name} used {action.Move.Name}");
-        _clientMessages.Add(action.Move.EffectivenessMessage(defender));
         
         if (action.Move.Status) return; // Status moves don't deal any damage
-
+        
+        _clientMessages.Add(action.Move.EffectivenessMessage(defender));
         int damage = DamageUtils.CalculateDamage(action);
         defender.CurrentHp -= damage;
     }

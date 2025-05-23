@@ -63,6 +63,7 @@ CREATE TABLE move_effects
     effectCode VARCHAR(50),
     duration INT,
     chance INT,
+    targetsSelf BOOLEAN,
     PRIMARY KEY (moveId, effectCode),
     FOREIGN KEY (moveId) REFERENCES moves(id) ON DELETE CASCADE,
     FOREIGN KEY (effectCode) REFERENCES effects(effectCode) ON DELETE CASCADE
@@ -124,8 +125,8 @@ VALUES
     ('def_down', 'Decrease Defense'),
     ('def_up', 'Increase Defense'),
     ('sp_atk_up', 'Increase Special Attack'),
-    ('opp_sp_atk_down', 'Decrease Opponent''s Special Attack'),
-    ('opp_sp_def_down', 'Decrease Opponent''s Special Defense'),
+    ('sp_atk_down', 'Decrease Special Attack'),
+    ('sp_def_down', 'Decrease Special Defense'),
     ('speed_up', 'Increase Speed'),
     
     -- Miscellaneous effects
@@ -176,35 +177,35 @@ VALUES
     ('Toxic', '', 128, 0, 90, FALSE, 0, TRUE);
 
 -- move_effects now includes duration and chance for each move-effect pair
-INSERT INTO move_effects (moveId, effectCode, duration, chance)
+INSERT INTO move_effects (moveId, effectCode, duration, chance, targetsSelf)
 VALUES
-    (1, 'burn', 2, 10),              -- Flamethrower: Burn for 2 turns, 10% chance
-    (3, 'flinch', 1, 30),            -- Air Slash: Flinch for 1 turn, 30% chance
-    (4, 'burn', 2, 10),              -- Fire Blast: Burn for 2 turns, 10% chance
-    (5, 'opp_sp_def_down', 0, 20),   -- Shadow Ball: Decrease Opponent's Special Defense, 20% chance
-    (6, 'flinch', 1, 20),            -- Dark Pulse: Flinch for 1 turn, 20% chance
-    (7, 'poison', 2, 30),            -- Sludge Bomb: Poison for 2 turns, 30% chance
-    (8, 'dest_bond', 1, 100),        -- Destiny Bond: Destiny Bond effect, 100% chance
-    (9, 'atk_up', 0, 100),           -- Dragon Dance: Increase Attack, 100% chance
-    (9, 'speed_up', 0, 100),         -- Dragon Dance: Increase Speed, 100% chance
-    (10, 'confusion', 2, 100),       -- Outrage: Confusion for 2 turns, 100% chance
-    (12, 'burn', 2, 10),             -- Fire Punch: Burn for 2 turns, 10% chance
-    (14, 'freeze', 2, 10),           -- Ice Beam: Freeze for 2 turns, 10% chance
-    (15, 'opp_sp_def_down', 0, 10),  -- Focus Blast: Decrease Opponent's Special Defense, 10% chance
-    (17, 'heal', 0, 100),            -- Synthesis: Heal, 100% chance
-    (18, 'def_up', 0, 100),          -- Harden: Increase Defense, 100% chance
-    (21, 'freeze', 2, 10),           -- Ice Punch: Freeze for 2 turns, 10% chance
-    (22, 'opp_sp_def_down', 0, 10),  -- Psychic: Decrease Opponent's Special Defense, 10% chance
-    (23, 'heal', 0, 100),            -- Giga Drain: Heal, 100% chance
-    (24, 'sleep', 2, 100),           -- Sleep Powder: Sleep for 2 turns, 100% chance
-    (25, 'paralyze', 2, 10),         -- Thunderbolt: Paralyze for 2 turns, 10% chance
-    (26, 'paralyze', 2, 100),        -- Thunder Wave: Paralyze for 2 turns, 100% chance
-    (27, 'faint', 0, 100),           -- Explosion: Faint, 100% chance
-    (28, 'sp_atk_up', 0, 70),        -- Charge Beam: Increase Special Attack, 70% chance
-    (29, 'recoil', 0, 100),          -- Brave Bird: Recoil, 100% chance
-    (31, 'heal', 0, 100),            -- Roost: Heal, 100% chance
-    (32, 'burn', 2, 10),             -- Heat Wave: Burn for 2 turns, 10% chance
-    (33, 'flinch', 1, 20),           -- Waterfall: Flinch for 1 turn, 20% chance
-    (34, 'freeze', 2, 10),           -- Ice Fang: Freeze for 2 turns, 10% chance
-    (35, 'entry_hazard', 0, 100),    -- Stealth Rock: Entry Hazard, 100% chance
-    (36, 'poison', 2, 100);          -- Toxic: Poison for 2 turns, 100% chance
+    (1, 'burn', 2, 10, false),              -- Flamethrower: Burn for 2 turns, 10% chance
+    (3, 'flinch', 1, 30, false),            -- Air Slash: Flinch for 1 turn, 30% chance
+    (4, 'burn', 2, 10, false),              -- Fire Blast: Burn for 2 turns, 10% chance
+    (5, 'sp_def_down', 0, 20, false),       -- Shadow Ball: Decrease Opponent's Special Defense, 20% chance
+    (6, 'flinch', 1, 20, false),            -- Dark Pulse: Flinch for 1 turn, 20% chance
+    (7, 'poison', 2, 30, false),            -- Sludge Bomb: Poison for 2 turns, 30% chance
+    (8, 'dest_bond', 1, 100, false),        -- Destiny Bond: Destiny Bond effect, 100% chance
+    (9, 'atk_up', 0, 100, true),            -- Dragon Dance: Increase Attack, 100% chance
+    (9, 'speed_up', 0, 100, true),          -- Dragon Dance: Increase Speed, 100% chance
+    (10, 'confusion', 2, 100, true),        -- Outrage: Confusion for 2 turns, 100% chance
+    (12, 'burn', 2, 10, false),             -- Fire Punch: Burn for 2 turns, 10% chance
+    (14, 'freeze', 2, 10, false),           -- Ice Beam: Freeze for 2 turns, 10% chance
+    (15, 'sp_def_down', 0, 10, false),      -- Focus Blast: Decrease Opponent's Special Defense, 10% chance
+    (17, 'heal', 0, 100, true),             -- Synthesis: Heal, 100% chance
+    (18, 'def_up', 0, 100, true),           -- Harden: Increase Defense, 100% chance
+    (21, 'freeze', 2, 10, false),           -- Ice Punch: Freeze for 2 turns, 10% chance
+    (22, 'sp_def_down', 0, 10, false),      -- Psychic: Decrease Opponent's Special Defense, 10% chance
+    (23, 'heal', 0, 100, true),             -- Giga Drain: Heal, 100% chance
+    (24, 'sleep', 2, 100, false),           -- Sleep Powder: Sleep for 2 turns, 100% chance
+    (25, 'paralyze', 2, 10, false),         -- Thunderbolt: Paralyze for 2 turns, 10% chance
+    (26, 'paralyze', 2, 100, false),        -- Thunder Wave: Paralyze for 2 turns, 100% chance
+    (27, 'faint', 0, 100, true),            -- Explosion: Faint, 100% chance
+    (28, 'sp_atk_up', 0, 70, true),         -- Charge Beam: Increase Special Attack, 70% chance
+    (29, 'recoil', 0, 100, true),           -- Brave Bird: Recoil, 100% chance
+    (31, 'heal', 0, 100, true),             -- Roost: Heal, 100% chance
+    (32, 'burn', 2, 10, false),             -- Heat Wave: Burn for 2 turns, 10% chance
+    (33, 'flinch', 1, 20, false),           -- Waterfall: Flinch for 1 turn, 20% chance
+    (34, 'freeze', 2, 10, false),           -- Ice Fang: Freeze for 2 turns, 10% chance
+    (35, 'entry_hazard', 0, 100, false),    -- Stealth Rock: Entry Hazard, 100% chance
+    (36, 'poison', 2, 100, false);          -- Toxic: Poison for 2 turns, 100% chance

@@ -34,6 +34,13 @@ public class Pokemon
         double multiplier = Math.Pow((2 + Math.Abs(stage)) / 2d, stage > 0 ? 1 : -1);
         return BaseStats.GetStat(stat) * (int)multiplier;
     }
+    
+    public void UpdateStatModifier(PokemonStat stat, int change)
+    {
+        if (change == 0) return;
+
+        _statModifiers[stat] = Math.Clamp(_statModifiers[stat] + change, -6, 6);
+    }
 
     public static int CalculateStartingHp(Pokemon pokemon)
     {

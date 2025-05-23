@@ -83,6 +83,7 @@ public class PokesiteDbContext : DbContext
                         Code = e.effect.EffectCode,
                         Duration = e.moveEffect.Duration,
                         Chance = e.moveEffect.Chance,
+                        TargetsSelf = e.moveEffect.TargetsSelf
                     })
                     .ToArray()
             });

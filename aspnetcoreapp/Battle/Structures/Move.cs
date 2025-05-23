@@ -9,4 +9,12 @@ public class Move
     public int Power { get; set; }
     public int Accuracy { get; set; }
     public Effect[] Effects { get; set; }
+    
+    public void AddEffects(Pokemon attacker, Pokemon target)
+    {
+        foreach (var effect in Effects)
+        {
+            effect.Add(attacker, target);
+        }
+    }
 }

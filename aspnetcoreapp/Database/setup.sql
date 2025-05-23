@@ -69,6 +69,17 @@ CREATE TABLE move_effects
     FOREIGN KEY (effectCode) REFERENCES effects(effectCode) ON DELETE CASCADE
 );
 
+-- Learnable moves for each Pokémon
+CREATE TABLE learnable_moves
+(
+    pokemonId INT,
+    moveId INT,
+    levelLearned INT,
+    PRIMARY KEY (pokemonId, moveId),
+    FOREIGN KEY (pokemonId) REFERENCES pokemon(id) ON DELETE CASCADE,
+    FOREIGN KEY (moveId) REFERENCES moves(id) ON DELETE CASCADE
+);
+
 INSERT INTO pokemon (id, name, typeFlags, description)
 VALUES
     (6, 'Charizard', 514, 'Charizard evolves from Charmeleon and gains the ability to fly. It’s a majestic yet intimidating Pokémon that breathes intense flames, capable of melting almost anything. Charizard has a fiery spirit and loves soaring high above the clouds, searching for worthy foes to battle.'),
@@ -209,3 +220,20 @@ VALUES
     (34, 'freeze', 2, 10, false),           -- Ice Fang: Freeze for 2 turns, 10% chance
     (35, 'entry_hazard', 0, 100, false),    -- Stealth Rock: Entry Hazard, 100% chance
     (36, 'poison', 2, 100, false);          -- Toxic: Poison for 2 turns, 100% chance
+
+-- Learnable moves for each Pokémon
+INSERT INTO learnable_moves (pokemonId, moveId, levelLearned) 
+VALUES
+    (6, 1, 36),   -- Charizard learns Flamethrower at level 36
+    (6, 2, 42),   -- Charizard learns Dragon Claw at level 42
+    (6, 3, 50),   -- Charizard learns Air Slash at level 50
+    (94, 4, 30),  -- Gengar learns Fire Blast at level 30
+    (94, 5, 40),  -- Gengar learns Shadow Ball at level 40
+    (94, 6, 50),  -- Gengar learns Dark Pulse at level 50
+    (149, 7, 55), -- Dragonite learns Sludge Bomb at level 55
+    (149, 8, 60), -- Dragonite learns Destiny Bond at level 60
+    (9, 9, 36),   -- Blastoise learns Hydro Pump at level 36
+    (3, 10, 32),  -- Venusaur learns Solar Beam at level 32
+    (11, 11, 10), -- Metapod learns Harden at level 10
+    (68, 12, 20), -- Machamp learns Cross Chop at level 20
+    (103,13,25);  -- Exeggutor learns Psychic at level 25

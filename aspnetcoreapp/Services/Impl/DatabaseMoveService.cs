@@ -15,4 +15,13 @@ public class DatabaseMoveService(PokesiteDbContext ctx) : IMoveService {
         return await ctx.BuildFullMoves()
             .FirstOrDefaultAsync(m => m.Name.ToLower() == name.ToLower());
     }
+    
+    public IEnumerable<MoveEntity> GetLearnableMoves(string pokemon, int level) {
+        var moves = ctx.GetLearnableMoves(pokemon, level);
+        if (moves == null! || !moves.Any()) {
+            return [];
+        }
+
+        return moves.AsEnumerable();
+    }
 }

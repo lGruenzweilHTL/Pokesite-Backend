@@ -4,4 +4,5 @@ public interface IMoveService {
 
     Task<IEnumerable<Move>> GetAllFullMovesAsync();
     Task<Move?> GetFullMoveByNameAsync(string name);
+    IEnumerable<MoveEntity> GetLearnableMoves(string pokemon, int level);
 }

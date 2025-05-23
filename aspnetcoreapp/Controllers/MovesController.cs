@@ -33,4 +33,14 @@ public class MovesController(IMoveService moveService) : ControllerBase {
         }
         return Ok(move);
     }
+
+    [HttpGet("learnable/{pokemon}/{level:int}")]
+    public IActionResult GetLearnableMoves(string pokemon, int level)
+    {
+        var moves = moveService.GetLearnableMoves(pokemon, level);
+        if (moves == null! || !moves.Any()) {
+            return NotFound($"No learnable moves found for Pokémon '{pokemon}' at level {level}.");
+        }
+        return Ok(moves);
+    }
 }

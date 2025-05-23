@@ -10,6 +10,7 @@ public class PokesiteDbContext : DbContext
     public DbSet<EffectEntity> Effects { get; set; }
     public DbSet<MoveEntity> Moves { get; set; }
     public DbSet<MoveEffectsEntity> MoveEffects { get; set; }
+    public DbSet<LearnableMovesEntity> LearnableMoves { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         // Required for systems with case-sensitive SQL like Linux
@@ -19,6 +20,7 @@ public class PokesiteDbContext : DbContext
         modelBuilder.Entity<MoveEntity>().ToTable("moves");
         modelBuilder.Entity<MoveEffectsEntity>().ToTable("move_effects");
         modelBuilder.Entity<ItemEntity>().ToTable("items");
+        modelBuilder.Entity<LearnableMovesEntity>().ToTable("learnable_moves");
 
         modelBuilder.Entity<StatsEntity>()
             .Property(s => s.SpecialAttack)
@@ -27,6 +29,10 @@ public class PokesiteDbContext : DbContext
         modelBuilder.Entity<StatsEntity>()
             .Property(s => s.SpecialDefense)
             .HasColumnName("spDefense");
+        
+        modelBuilder.Entity<LearnableMovesEntity>()
+            .Property(m => m.Level)
+            .HasColumnName("levelLearned");
 
         modelBuilder.Entity<StatsEntity>()
             .HasKey(s => s.PokemonId);
@@ -36,6 +42,9 @@ public class PokesiteDbContext : DbContext
 
         modelBuilder.Entity<EffectEntity>()
             .HasKey(e => e.EffectCode);
+        
+        modelBuilder.Entity<LearnableMovesEntity>()
+            .HasKey(m => new { m.PokemonId, m.MoveId });
     }
 
     public IQueryable<Pokemon> BuildFullPokemon() {
@@ -87,6 +96,25 @@ public class PokesiteDbContext : DbContext
                     })
                     .ToArray()
             });
+    }
+    
+    public IQueryable<MoveEntity> GetLearnableMoves(string pokemon, int level)
+    {
+        return from move in Moves
+                join learnableMove in LearnableMoves on move.Id equals learnableMove.MoveId
+                join pokemonEntity in Pokemon on learnableMove.PokemonId equals pokemonEntity.Id
+                where pokemonEntity.Name.ToLower() == pokemon.ToLower() && learnableMove.Level <= level
+                select new MoveEntity(
+                    move.Id,
+                    move.Name,
+                    move.Description,
+                    move.TypeFlags,
+                    move.Power,
+                    move.Accuracy,
+                    move.Special,
+                    move.Priority,
+                    move.Status
+                );
     }
 
     public IQueryable<Item> GetItems() {

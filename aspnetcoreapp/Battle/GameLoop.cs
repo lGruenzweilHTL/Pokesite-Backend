@@ -1,4 +1,5 @@
 using System.Text.Json;
+using aspnetcoreapp.Battle.DTOs;
 
 public class GameLoop {
     public string BattleGuid { get; }
@@ -7,6 +8,10 @@ public class GameLoop {
     
     public List<(Guid guid, Player p)> ConnectedPlayers { get; }
     public List<(Player p, ITrainerBotBehaviour behaviour)> ConnectedBots { get; }
+    
+    // TEMP
+    private List<Player> AllPlayers => ConnectedPlayers.Select(p => p.p)
+        .Concat(ConnectedBots.Select(b => b.p)).ToList();
     public int NumPlayers => ConnectedPlayers.Count + ConnectedBots.Count;
     
     private readonly WebSocketHandler _webSocketHandler;
@@ -141,12 +146,60 @@ public class GameLoop {
             _clientMessages.Add("Game ended with status: " + GameState);
         }
 
-        WebsocketResponse response = new()
+        Player player1 = AllPlayers[0],
+            player2 = AllPlayers[1];
+        SocketResponse response = new()
         {
             GameState = GameState.ToString(),
-            Messages = _clientMessages.ToArray(),
-            Player1Hp = ConnectedPlayers[0].p.CurrentPokemon.CurrentHp, // TEMP
-            Player2Hp = ConnectedBots[0].p.CurrentPokemon.CurrentHp // TEMP
+            Messages = _clientMessages.Where(m => !string.IsNullOrWhiteSpace(m)).ToArray(),
+            Player1 = new BattlePlayerData
+            {
+                Items = player1.Items
+                    .Select(i => i.Name)
+                    .ToArray(),
+                Switches = player1.AlivePokemons
+                    .Where(p => p != player1.CurrentPokemon)
+                    .Select(p => p.Name)
+                    .ToArray(),
+                Pokemon = new BattlePokemonData
+                {
+                    Name = player1.CurrentPokemon.Name,
+                    Id = player1.CurrentPokemon.Id,
+                    Level = player1.CurrentPokemon.Level,
+                    CurrentHp = player1.CurrentPokemon.CurrentHp,
+                    MaxHp = player1.CurrentPokemon.MaxHp,
+                    StatusEffects = player1.CurrentPokemon.StatusEffects
+                        .Select(e => e.Name)
+                        .ToArray(),
+                    Moves = player1.CurrentPokemon.Moves
+                        .Select(m => m.Name)
+                        .ToArray(),
+                }
+            },
+            Player2 = new BattlePlayerData
+            {
+                Items = player2.Items
+                    .Select(i => i.Name)
+                    .ToArray(),
+                Switches = player2.AlivePokemons
+                    .Where(p => p != player2.CurrentPokemon)
+                    .Select(p => p.Name)
+                    .ToArray(),
+                Pokemon = new BattlePokemonData
+                {
+                    Name = player2.CurrentPokemon.Name,
+                    Id = player2.CurrentPokemon.Id,
+                    Level = player2.CurrentPokemon.Level,
+                    CurrentHp = player2.CurrentPokemon.CurrentHp,
+                    MaxHp = player2.CurrentPokemon.MaxHp,
+                    StatusEffects = player2.CurrentPokemon.StatusEffects
+                        .Select(e => e.Name)
+                        .ToArray(),
+                    Moves = player2.CurrentPokemon.Moves
+                        .Select(m => m.Name)
+                        .ToArray(),
+                }
+            }
         };
         _webSocketHandler.BroadcastMessageAsync(response.ToJson()).GetAwaiter().GetResult();
         
@@ -214,22 +267,7 @@ public class GameLoop {
         _clientMessages.Add($"{action.Player.Name} switched to {newPokemon.Name}");
         action.Player.CurrentPokemonIndex = action.NewPokemonIndex;
     }
-
-
-    /*
-     * 2 Solutions to link player guid to client guid:
-     *
-     * 1. Assign client guid only when connecting to the websocket
-     *      - possible race conditions for clients (connect before game starts)
-     *          - not necessarily a problem, but may be annoying
-     *      - annoying setup but may be worth it
-     *      - more secure
-     *
-     * 2. Save both guids in the GameLoop
-     *      - annoying to implement
-     *      - don't really want to do this
-     *      - more responsibility for client (sending guid with each message)
-     */
+    
     private void ProcessClientMessage(Guid clientId, JsonDocument message)
     {
         // Handle the message (e.g., player actions)
@@ -237,7 +275,8 @@ public class GameLoop {
         Console.WriteLine($"Processing message: {JsonSerializer.Serialize(request)}");
         
         if (BattleGuid != request.BattleGuid
-            || ConnectedPlayers.All(p => p.guid != clientId)){
+            || ConnectedPlayers.All(p => p.guid != clientId)
+            || GameState != GameState.InProgress) { 
             Console.WriteLine("Discarding message...");
             return;
         }
@@ -253,8 +292,7 @@ public class GameLoop {
 
     // Finds the opponent of a player in a 2 player game; Asserts that there are only 2 players
     private Player FindOpponentIn2PlayerGame(Player player) {
-        return ConnectedPlayers.Select(pair => pair.p)
-            .Concat(ConnectedBots.Select(p => p.p))
+        return AllPlayers
             .Single(p => p != player);
     } 
 }

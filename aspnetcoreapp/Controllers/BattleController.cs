@@ -95,14 +95,17 @@ public class BattleController(IPokemonService pokemonService, GameManager gameMa
         Pokemon[] team = await Task.WhenAll(
             json.GetProperty("pokemon")!
                 .EnumerateArray()!
-                .Select(async p => await pokemonService.GetPokemonWithMovesByNameAsync(
-                    p.GetProperty("name").GetString()!,
-                    p.GetProperty("moves").EnumerateArray().Select(m => m.GetString()!).ToArray()!
-                ))
-                .Select(Task<Pokemon> (p) => p!)
+                .Select(async p => {
+                    var pokemon = await pokemonService.GetPokemonWithMovesByNameAsync(
+                        p.GetProperty("name").GetString()!,
+                        p.GetProperty("moves").EnumerateArray().Select(m => m.GetString()!).ToArray()!
+                    );
+                    if (p.TryGetProperty("level", out var levelProp))
+                        pokemon.Level = levelProp.GetInt32();
+                    return pokemon;
+                })
         );
-        
-        
+
         Player player = new(
             json.GetProperty("name").GetString()!,
             false,

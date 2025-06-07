@@ -165,13 +165,21 @@
   "player1": {
     "pokemon": "string",
     "hp": "int",
-    "effects": ["string"]
+    "max_hp": "int",
+    "effects": ["string"],
+    "moves": ["string"],
+    "items": ["string"],
+    "switches": ["string"]
   },
   "player2": {
     "pokemon": "string",
     "hp": "int",
-    "effects": ["string"]
+    "max_hp": "int",
+    "effects": ["string"],
+    "moves": ["string"],
+    "items": ["string"],
+    "switches": ["string"]
   },
-  "winner": "none | draw | 1 | 2"
+  "game_state": "string"
 }
 ```
